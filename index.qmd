@@ -1,0 +1,44 @@
+---
+title: ""
+page-layout: full
+---
+
+![](images/white_sands.png)
+
+::: top-left
+## Welcome
+
+This site contains R and Python scripts for data analysis, data visualization, machine learning, and miscellaneous other projects. It's primarily meant to be a try things out and be a repository of useful tidbids of code.
+:::
+
+::: center-text
+The blog posts are either R or Python scripts that cobble together code I either wrote myself or, as is often the case, borrowed from one of the many more talented people who are kind enough to share their knowledge. Be aware that *there could be errors* lurking about my scripts. If you find one, kindly leave a comment.
+
+## Examples
+:::
+
+::: {.grid .center-text}
+::: g-col-6
+![](images/unsplash-computer.jpg)
+
+[Data Analysis](https://jfking.quarto.pub/tutorial/slr.html){.btn .btn-success role="button"}
+:::
+
+::: g-col-6
+![](images/collatz.png)
+
+[Generative Art](https://jfking.quarto.pub/posts/collatz/){.btn .btn-success role="button"}
+:::
+
+::: g-col-6
+![](images/unsplash-football.jpg)
+
+[Football Analytics](https://jfking.quarto.pub/posts/adjusted_stats/){.btn .btn-success role="button"}
+:::
+
+::: g-col-6
+![](images/unsplash-lights.jpg)
+
+[Miscellaneous](https://jfking.quarto.pub/posts/decipher/){.btn .btn-success role="button"}
+:::
+:::

@@ -1,0 +1,118 @@
+---
+title: ""
+page-layout: full
+---
+
+::: {.columns}
+::: {.column width="65%"}
+## Degrees
+
+-   B.A., German/Math, Willamette University, Oregon
+-   B.S., Geology, Portland State University, Oregon
+-   M.S., Geology, Portland State University, Oregon
+-   M.S., Operations Research, Naval Postgraduate School, California
+
+## Theses
+
+-   King, John F., *Magmatic Evolution and Eruptive History of the Granitic Bumping Lake Pluton, Washington: Source of the Bumping River and Cash Prairie Tuffs* (1994). [Dissertations and Theses. Paper 4765.](https://archives.pdx.edu/ds/psu/27883)
+
+-   King, John, Major, U.S. Army, *An Implementation of Designed Experiments in Combat XXI*, M.S. in Operations Research, June, 2018 (RESTRICTED).
+:::
+
+::: {.column width="35%"}
+## AI Likeness
+
+![DALL-E: A happy old Geologist in a dark pub typing on a laptop, digital art.
+](images/DALLE.png){width="80%" fig-align="center"}
+:::
+:::
+
+## Travels
+
+If it's dark blue, I did stuff there. If medium blue, then just an airport layover. **It's Interactive!**
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| fig.height: 3
+library(countrycode)
+library(plotly)
+library(dplyr)
+
+country_list = c('Canada', 'Mexico', 'Puerto Rico','Dominican Republic','Costa Rica',
+                 'Morocco','French Polynesia', 'Germany','Austria', 'Switzerland',
+                 'Italy', 'Vatican City', 'Spain', 'Portugal', 'Gibraltar', 'Luxembourg',
+                 'France', 'Netherlands', 'Belgium','UK', 'Ireland',
+                 'Czech Republic','Denmark', 'Sweden', 'Kuwait', 'Iraq', 'Afghanistan',
+                 'Kyrgyzstan', 'China', 'South Korea', 'Turkey', 'USA', 'Lithuania')
+
+country_airports <- c('Japan')
+
+state_list = c("Alabama", "Arizona", "Arkansas", "California",
+               "Colorado","District of Columbia",
+               "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana",
+               "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
+               "Mississippi", "Missouri", "Montana",
+               "Nebraska", "Nevada", "New Hampshire", "New Mexico", "North Carolina",
+               "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "South Carolina",
+               "Tennessee", "Texas", "Utah", "Virginia", "Washington", "West Virginia", 
+               "Wisconsin", "Wyoming" 
+)
+
+state_airports <- c("Alaska", "Michigan", "Minnesota")
+
+states <- read.csv("data/us_states.csv", header=TRUE)
+
+states <- states %>% 
+  mutate(visited = case_when(
+    State %in% state_list ~ 1,
+    State %in% state_airports ~ 0.5,
+    TRUE ~ 0))
+
+# light grey boundaries
+l <- list(color = toRGB("grey"), width = 0.5)
+
+us <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  bgcolor = toRGB("white", alpha = 0),
+  list(domain = list(x = c(0, .6), y = c(0, .6)))
+)
+
+us_plot <- 
+  plot_geo(states, locationmode = 'USA-states') %>%
+  add_trace(
+  z = ~visited, text = ~State, locations = ~Code,
+  color = ~visited, colors = 'Blues', marker = list(line = l)) %>%
+  layout(geo=us) %>%
+  hide_colorbar()
+
+# countries
+iso <- countrycode(country_list, origin='country.name', destination = 'iso3c')
+
+countries <- codelist_panel %>% 
+  filter(year == 2020) %>% 
+  select(country.name.en, iso3c) %>%
+  mutate(visited = case_when(
+    iso3c %in% iso ~ 1,
+    iso3c %in% countrycode(country_airports, origin='country.name', destination = 'iso3c') ~ 0.5,
+    TRUE ~ 0))
+
+world <- list(
+  showframe = FALSE,
+  showcoastlines = FALSE,
+  projection = list(type = "Mercator"),
+  list(domain = list(x = c(0, 1), y = c(0, 1)))
+)
+
+world_plot <- plot_geo() %>%
+  add_trace(
+    data = countries,
+    z = ~visited, text = ~country.name.en, locations = ~iso3c,
+    color = ~visited, colors = 'Blues', marker = list(line = l)) %>%
+  layout(geo=world) %>%
+  hide_colorbar()
+
+subplot(us_plot, world_plot, nrows = 1) 
+```
