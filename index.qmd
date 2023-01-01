@@ -21,24 +21,24 @@ The blog posts are either R or Python scripts that cobble together code I either
 ::: g-col-6
 ![](images/unsplash-computer.jpg)
 
-[Data Analysis](https://jfking.quarto.pub/tutorial/slr.html){.btn .btn-success role="button"}
+[Data Analysis](https://jfking.netlify.app/tutorial/slr.html){.btn .btn-success role="button"}
 :::
 
 ::: g-col-6
 ![](images/collatz.png)
 
-[Generative Art](https://jfking.quarto.pub/posts/collatz/){.btn .btn-success role="button"}
+[Generative Art](https://jfking.netlify.app/posts/collatz/){.btn .btn-success role="button"}
 :::
 
 ::: g-col-6
 ![](images/unsplash-football.jpg)
 
-[Football Analytics](https://jfking.quarto.pub/posts/adjusted_stats/){.btn .btn-success role="button"}
+[Football Analytics](https://jfking.netlify.app/posts/adjusted_stats/){.btn .btn-success role="button"}
 :::
 
 ::: g-col-6
 ![](images/unsplash-lights.jpg)
 
-[Miscellaneous](https://jfking.quarto.pub/posts/decipher/){.btn .btn-success role="button"}
+[Miscellaneous](https://jfking.netlify.app/posts/decipher/){.btn .btn-success role="button"}
 :::
 :::
