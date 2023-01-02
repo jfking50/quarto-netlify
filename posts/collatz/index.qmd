@@ -1,0 +1,209 @@
+---
+title: "Collatz Conjecture"
+description: "Organic structures from number sequences."
+author: "John King"
+date: "5/1/2022"
+format:
+  html:
+    toc: true
+    code-fold: false
+    code-tools: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  message: false
+  echo: true
+categories:
+  - R
+  - ggplot2
+  - generative art
+image: "teaser.png"
+---
+
+The inspiration for a series of posts on generative art was a post I read announcing the `aRtsy` package for producing generative art. A number of the example canvases looked nice, so I installed the package from [the author's GitHub repository](https://github.com/koenderks/aRtsy). The first canvas I tried was `canvas_collatz()`, but for whatever reason, instead of the canvas as shown in the example below, it produced just one wavy line.
+
+![](https://github.com/koenderks/aRtsy/raw/development/png/collatzs/2021-08-08.png){width="25%"}
+
+I looked into the source code in the repo to see if I could tell what was going wrong, but the R scripts were calling functions that I couldn't find. So then I thought, why not just write my own script to create the art?
+
+## Collatz Conjecture
+
+Between the [Wikipedia page](https://en.wikipedia.org/wiki/Collatz_conjecture) for the Collatz conjecture and the `aRtsy` package description, I thought I had enough to go on. First, I started with generating just one number sequence. The process is this.
+
+1.  Randomly choose a positive integer.
+2.  If it's even, divide by two.
+3.  If it's odd, multiply by three and add one.
+
+Repeat 2 and 3 and keep track of the sequence of numbers. The Collatz conjecture states that no matter what number you start with, the sequence will always reach the number 1. So, once the sequence reaches 1, stop the sequence. Let's do it!
+
+```{r}
+set.seed(1)                # 1 seems appropriate for this problem 
+
+n <- sample(2:1000000, 1)  # choose a random number between 2 and one million
+ns <- n                    # add it to the sequence
+
+while (n > 1){             # stop the sequence when we reach 1 
+  if(n %% 2 == 0){         # check if the number is even
+    n <- n / 2             # divide by 2
+    ns <- c(ns, n)         # add it to the sequence
+  }else{                   # if it's odd
+    n <- 3*n + 1           # do the math
+    ns <- c(ns, n)}        # add it to the sequence
+}
+
+ns
+```
+
+## Creating Art
+
+Ok, now that I have a sequence of numbers, how do I turn that into a line? According to the description in the GitHub repo, by "bending the edges differently for even and odd numbers in the sequence". I wasn't certain exactly meant in terms of code, but my first thought was just to do a little trigonometry and follow these steps:
+
+1.  Reverse the sequence in order to start with 1.
+2.  Also pick a starting angle - I chose 0.
+3.  For the first number (1), assign it the (x, y) coordinates of (0, 0).
+4.  Look at the next number in the sequence.
+5.  If it's even, update the angle by:
+    i)  new angle = old angle + 0.0075
+6.  If it's odd, update the angle by:
+    i)  new angle = old angle - 0.0145
+7.  Calculate the next coordinate by:
+    i)  new x = old x + cos(new angle)
+    ii) new y = old y + sin(new angle)
+
+Repeat steps 3-6 for the rest of the sequence. The following code does the trick.
+
+```{r}
+even_angle = 0.0075 
+odd_angle = 0.0145
+
+df <- data.frame(n = rev(ns)) # dataframe to store coordinates
+
+angle <- 0
+x <- rep(1, length(ns))       # initialize x coords with 1's
+y <- rep(1, length(ns))       # same for y coords
+
+for (i in 2:length(ns)){
+  if (ns[i] %% 2 == 0){       # check for even number
+    angle <- angle + even_angle
+    x[i] <- x[i-1] + cos(angle)
+    y[i] <- y[i-1] + sin(angle)
+  }else{
+    angle <- angle - odd_angle
+    x[i] <- x[i-1] + cos(angle)
+    y[i] <- y[i-1] + sin(angle)}
+}
+df$x <- x
+df$y <- y
+
+head(df)
+```
+
+Let's see how that looks in a plot.
+
+```{r}
+library(ggplot2)
+
+theme_set(theme_bw())
+
+ggplot(df) +
+  geom_line(aes(x=x, y=y))
+```
+
+That looks promising, so now I'll generate 200 sequences the same way. I'll number each sequence 1-200 as I create them and store the sequence number in column named `gp`.
+
+```{r}
+set.seed(1)
+
+for (i in 1:200){
+  n <- sample(2:1000000, 1)
+  ns <- n
+  
+  while (n > 1){
+    if(n %% 2 == 0){
+      n <- n / 2
+      ns <- c(ns, n)
+    }else{
+      n <- 3*n + 1
+      ns <- c(ns, n)}
+  }
+  ifelse(i == 1, 
+         df <- data.frame(n = rev(ns), gp = i), 
+         df <- rbind(df, data.frame(n = rev(ns), gp = i)))
+}
+```
+
+Next I generate all of the coordinates for each sequence.
+
+```{r}
+df$x <- 0
+df$y <- 0
+
+for (j in 1:200){
+  angle <- 0
+  sq <- df[df$gp == j, "n"]
+  x <- rep(1, length(sq))
+  y <- rep(1, length(sq))
+  for (i in 2:length(sq)){
+    if (sq[i] %% 2 == 0){
+      angle <- angle + even_angle
+      x[i] <- x[i-1] + cos(angle)
+      y[i] <- y[i-1] + sin(angle)
+    }else{
+      angle <- angle - odd_angle
+      x[i] <- x[i-1] + cos(angle)
+      y[i] <- y[i-1] + sin(angle)}
+  }
+  df[df$gp == j, "x"] <- x
+  df[df$gp == j, "y"] <- y
+}
+
+head(df)
+```
+
+This time, instead of `ggplot2`, I'm going to use `plotly` to create the graphic because it might be interesting to zoom in on different parts of the plot. I'm going to hide all of the axis labels, grid lines, etc. so that the final plot looks more like a canvas. I'll also apply the `Spectral` color palette from `RColorBrewer` and make the background black.
+
+```{r}
+library(plotly)
+library(RColorBrewer)
+
+noax <- list(
+  title = "",
+  zeroline = FALSE,
+  showline = FALSE,
+  showticklabels = FALSE,
+  showgrid = FALSE
+)
+
+df %>% mutate(gp = factor(gp)) %>%
+  plot_ly() %>%
+  add_lines(x=~x, y=~y, color=~gp, colors = colorRampPalette(brewer.pal(11, "Spectral"))(200),
+            hoverinfo = "none",
+            opacity = 0.5, showlegend = FALSE) %>%
+  layout(xaxis = noax,
+         yaxis = noax,
+         paper_bgcolor = "#000000", plot_bgcolor = "#000000")
+```
+
+The images this algorithm generates remind me of feathers, flowers, or grass. Maybe animating the plot would produce an interesting effect.
+
+```{r}
+#| include: false
+library(dplyr)
+library(gganimate)
+
+df %>% 
+  mutate(frame = row_number()) %>%
+  ggplot() +
+  geom_line(aes(x=x, y=y, group=gp, color=factor(gp)), size = 1, alpha=0.5) +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_void() +
+  theme(panel.background = element_rect(fill = 'black', color = 'black'),
+        legend.position = "none") + 
+  transition_reveal(gp)
+
+```
+
+![](collatz.gif)
+
+It seemed to me that there are a number of knobs one could turn to get different effects, like the seed, the number of sequences, the amount of bend in the lines, and the choice of color palettes. So, I made a [Shiny App](https://cxxidemo.shinyapps.io/genart/) for this and other generative art algorithms.

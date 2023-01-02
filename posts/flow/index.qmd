@@ -1,0 +1,541 @@
+---
+title: "Flow Fields"
+description: "Manual and algorithm-based methods for generating flow fields."
+author: "John King"
+date: "5/26/2022"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-tools: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  message: false
+  echo: true
+categories:
+  - R
+  - ggplot2
+  - generative art
+image: "teaser.png"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, dpi=300)
+```
+
+In this post, I'll generate art based on the idea of a material flowing through an area. Again this was inspired by the [the aRtsy package](https://github.com/koenderks/aRtsy), which has a `canvas_flow()` function to create such art. However, I like to learn how these generative functions work, so I attempt to write my own function. In the `canfav_flow()` description, it mentions [a post by Tyler Hobbs](https://tylerxhobbs.com/essays/2020/flow-fields) as a good reference. It does a nice job of walking through the concepts using pseudo code, which I'll implement in R. For motivation, here's an image from Tyler's post that will give you an idea of what I'm trying to create.
+
+![Image from Tyler Hobb's post (link above).](https://images.squarespace-cdn.com/content/v1/5c12933f365f02733c923e4e/1580788110303-VLBVW9I9EHKF4APSFZUK/long-curves.jpg?format=1500w)
+
+## Manual Flow Fields
+
+Tyler Hobbs' post starts here, and I found it useful to understand the basics. First, I'll start with a 20x20 matrix, and define the flow as being in the same direction uniformly through the canvas. It helped me to visualize that by plotting a dot for every matrix cell with a line segment extending from the dot that indicates the direction of flow. For a uniform field, I populate the matrix with angles equal to $1\frac{5}{8}\pi$.
+
+```{r}
+m <- matrix((13/8)*pi, nrow=20, ncol=20)
+```
+
+Then, since I'm going to create the plot a few times, I'll write a function `get_plot()` that takes the matrix as an argument, and returns the plot I described. First, the necessary libraries.
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+theme_set(theme_bw())
+
+get_plot <- function(M) {
+  as_tibble(M) %>% 
+    pivot_longer(everything(), values_to='a') %>% 
+    bind_cols(expand.grid(x=1:ncol(M), y=rev(1:nrow(M)))) %>% 
+    mutate(xend = x+cos(a)*0.5, yend = y+sin(a)*0.5) %>%
+    ggplot() + 
+    geom_point(aes(x=x, y=y)) +
+    geom_segment(aes(x=x, xend=xend, y=y, yend=yend)) +
+    coord_fixed()
+}
+
+get_plot(m)
+```
+
+To generate the art, I want to draw individual lines of varying length through the field. The direction each line travels will be determined by the direction specified by the closest dot. Drawing lines through this field wouldn't be very interesting, so I'll add some curvature to it.
+
+```{r}
+for (i in 1:ncol(m)){m[, i] <- m[, i] + i/20 * pi*(3/4)}
+
+p <- get_plot(m)
+p
+```
+
+Since I'll generate lines through flow fields multiple times in this post, The function `get_lines()` takes the flow matrix `m` as an argument, and also a multiplier `segment_length` for how long I want the line segments to be and `num_lines` for how many lines I want to generate. I create a data frame `df` to store the x and y coordinates of the lines. The initial `x` and `y` values are random numbers somewhere within the bounds of the flow matrix. The variable `theta` contains the value from the flow matrix (an angle) that is closest to the x and y coordinate. A new `x` and `y` are then calculated based on `theta` and these values are added to the data frame. Comments in the code provide the rest of the details.
+
+```{r}
+get_lines <- function(M = NULL, segment_length=5, num_lines=400){
+  for (j in 1:num_lines){
+    dims <- nrow(M)
+    # the actual line segment length 
+    seg_len <- sample(dims:dims*segment_length, 1)
+    
+    df <- data.frame(x=rep(0, seg_len), y=rep(0, seg_len), seg = rep(0, seg_len))
+    
+    for (i in 1:seg_len){
+      if (i == 1){
+        x <- runif(1, 1, dims-1) # random starting value for x
+        y <- runif(1, 1, dims-1) # random starting value for y
+        df[i, ] <- c(x, y, j)
+      } else {
+        theta <- M[round(y, 0), round(x, 0)+1] # find the closest angle to x & y
+        x <- x + cos(theta) * 0.1 # 0.1 controls how far apart the new x & y 
+        y <- y + sin(theta) * 0.1 # are from the previous values
+        if (x > dims - 1 | x < 1) break  # prevents lines going out of bounds
+        if (y > dims | y < 1) break
+        df[i, ] <- c(x, y, j)
+      }
+    }
+    df <- df %>% filter(seg != 0) # get rid of empty rows if lise was out of bounds
+    ifelse(j==1, df_new <- df, df_new <- df_new %>% bind_rows(df))
+  }
+  df_new
+}
+```
+
+For generating one line, I'll choose an arbitrarily long line segment to make sure the function doesn't return a really short line.
+
+```{r}
+set.seed(4)
+
+df <- get_lines(m, 50, 1)
+
+head(df)
+```
+
+Plotting is straight forward. I'll just add the line to the previous plot `p`.
+
+```{r}
+p +
+  geom_path(data=df, aes(x=x, y=y, group=seg), 
+            color="red", size=1, lineend="round", linejoin="bevel") +
+  theme(legend.position="none") 
+```
+
+Plotting several lines of varying length, I get:
+
+```{r}
+set.seed(4)
+
+df <- get_lines(m, 5, 10)
+
+p +
+  geom_path(data=df, aes(x=x, y=y, group=seg), 
+            color="red", size=1, lineend="round", linejoin="bevel") +
+  theme(legend.position="none") 
+```
+
+## Algorithm-Based Flow Fields
+
+To make more visually interesting flow fields like Tyler's at the beginning of this post, I first tried to continue to manipulate the flow field above by adding different amounts of curvature to different part of the field. I had a difficult time controlling it so that I didn't have divergent areas and eventually gave up on that approach. Tyler stated that initializing the matrix with "Perlin noise" was common and provided pseudo code for how to do it. Unfortunately, the pseudo code didn't actually demonstrate how generate Perlin noise from scratch, rather it referred to a hypothetical function to generate the noise and then the pseudo code further manipulated those results. Buggers.
+
+The [Wikipedia article](https://en.wikipedia.org/wiki/Perlin_noise) on Perlin noise stated that the algorithm
+
+> ...typically involves three steps: defining a grid of random gradient vectors, computing the dot product between the gradient vectors and their offsets, and interpolation between these values.
+
+And then provided about a page and a half of pseudo code to describe it. I wasn't motivated enough to redo that in R, but at least the site showed some visualizations for what it looked like. Here's one example.
+
+![Wikipedia image of Perlin noise.](https://upload.wikimedia.org/wikipedia/commons/d/da/Perlin_noise.jpg)
+
+It didn't take much Googling to find an R package that generates Perlin noise. The package `ambient` does the trick with an aptly named `noise_perlin()` function that couldn't be simpler to use. I'll get a 20x20 matrix and plot it with the `get_plot()` function.
+
+```{r message=FALSE, warning=FALSE}
+library(ambient)
+
+m <- noise_perlin(c(20, 20))
+
+get_plot(m) + ggtitle("Perlin Noise")
+```
+
+Well that's not very interesting. Recall that we're plotting these values as radians, and they just don't vary enough as is. Note the range in values.
+
+```{r}
+range(m)
+```
+
+I'll rescale them to range between -pi/2 and pi/2 and re-plot the values.
+
+```{r}
+m2 <- scales::rescale(m, to=c(-pi/2, pi/2))
+
+get_plot(m2) + ggtitle("Perlin Noise Rescaled")
+```
+
+That's better. I'll increase the scale even more.
+
+```{r}
+m3 <- scales::rescale(m, to=c(-pi, pi))
+
+get_plot(m3)  + ggtitle("Perlin Noise Rescaled Even More")
+```
+
+I'll create a figure like the one in Wikipedia to visualize the matrix values.
+
+```{r}
+reshape2::melt(m3) %>%
+  ggplot() +
+  geom_tile(aes(x=Var1, y=Var2, fill=value)) +
+  coord_fixed()
+```
+
+That's underwhelming... We need a bigger matrix!
+
+```{r}
+m <- noise_perlin(c(400,400))
+
+reshape2::melt(m) %>%
+  ggplot() +
+  geom_tile(aes(x=Var1, y=Var2, fill=value)) +
+  coord_fixed() +
+  theme_void() +
+  theme(legend.position="none") 
+```
+
+We can pass different parameters to the `noise_perlin()` function to get different types of noise. For example:
+
+```{r}
+m1 <- noise_perlin(c(100,100), fractal='fbm') # the default
+m2 <- noise_perlin(c(100,100), fractal='billow')
+m3 <- noise_perlin(c(100,100), fractal='rigid-multi') 
+
+p1 <- reshape2::melt(m1) %>%
+  ggplot() +
+  geom_tile(aes(x=Var1, y=Var2, fill=value)) +
+  coord_fixed() +
+  theme_void() +
+  ggtitle("FBM") +
+  theme(legend.position="none", plot.title = element_text(hjust = 0.5))
+
+p2 <- reshape2::melt(m2) %>%
+  ggplot() +
+  geom_tile(aes(x=Var1, y=Var2, fill=value)) +
+  coord_fixed() +
+  theme_void() +
+  ggtitle("Billow") +
+  theme(legend.position="none", plot.title = element_text(hjust = 0.5)) 
+
+p3 <- reshape2::melt(m3) %>%
+  ggplot() +
+  geom_tile(aes(x=Var1, y=Var2, fill=value)) +
+  coord_fixed() +
+  theme_void() +
+  ggtitle("Rigid-Multi") +
+  theme(legend.position="none", plot.title = element_text(hjust = 0.5)) 
+
+gridExtra::grid.arrange(p1, p2, p3, nrow=1)
+```
+
+From these images, we can see that the choice in fractal will have a large impact on the resulting art. Speaking of which, time to make some!
+
+```{r}
+m <- noise_perlin(c(100,100))
+m <- scales::rescale(m, to=c(-pi/2, pi/2))
+
+get_lines(M=m, segment_length=5, num_lines=400)  %>%
+  ggplot() + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: FBM Fractal, pi/2 scale, 400 lines")
+
+```
+
+```{r}
+m <- noise_perlin(c(100,100))
+m <- scales::rescale(m, to=c(-pi/2, pi/2))
+
+get_lines(M=m, segment_length=5, num_lines=400)  %>%
+  ggplot() + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: Same as previous image.")
+```
+
+```{r}
+m <- noise_perlin(c(100,100), fractal='billow')
+m <- scales::rescale(m, to=c(-pi, pi))
+
+get_lines(M=m, segment_length=5, num_lines=800)  %>%
+  ggplot() + 
+  geom_path(aes(x=x, y=y, group=seg, color=seg), 
+            alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: Billow Fractal, pi scale, 800 lines")
+```
+
+```{r}
+m <- noise_perlin(c(100,100), fractal='rigid-multi')
+m <- scales::rescale(m, to=c(-pi/4, pi/4))
+
+get_lines(M=m, segment_length=5, num_lines=800)  %>%
+  ggplot() + 
+  geom_path(aes(x=x, y=y, group=seg, color=seg), 
+            alpha=0.5, size=1, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: Rigid-Multi Fractal, pi/4 scale, 800 (thicker) lines")
+```
+
+```{r}
+m <- noise_perlin(c(100,100))
+m <- scales::rescale(m, to=c(-pi, pi))
+df <- get_lines(M=m, segment_length=5, num_lines=400)
+
+m <- noise_perlin(c(100,100))
+m <- scales::rescale(m, to=c(-pi, pi))
+df2 <- get_lines(M=m, segment_length=5, num_lines=400)
+
+ggplot() + 
+  geom_path(data=df, aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  geom_path(data=df2, aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: 2xFBM Fractals, pi scale, 400 lines")
+```
+
+```{r}
+ggplot() + 
+  geom_path(data=df, aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=1, 
+            lineend="round", linejoin="bevel") +
+  geom_path(data=df2, aes(x=x, y=y, group=seg), 
+            color="white", size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Options: 2xFBM Fractals, White Lines Over Black")
+```
+
+From what I've seen in other posts, this is just the tip of the iceberg of the type of generative art from flow fields. Here are a few ideas.
+
+1.  Place starting points for lines on a grid instead of randomly.
+2.  Place several starting points for lines together in a tight circle.
+3.  Place starting points on just one side of the canvas.
+4.  Change the color of lines as they increase in length.
+5.  Change the thickness of lines as they increase in length.
+
+To try any of these, I'll either need to modify the `get_lines()` function or just forget about the function and just write some code. I think I'll just write some code.
+
+### Gridded Starting Lines
+
+For the gridded example, I also made the length of the lines a constant. The grid itself is apparent in the image below, which might not be desirable.
+
+```{r}
+m <- noise_perlin(c(100,100))
+m <- scales::rescale(m, to=c(-pi/2, pi/2))
+
+sp <- expand.grid(y=seq(1, 99, length.out=20), x=seq(1, 99, length.out=20))
+
+for (j in 1:nrow(sp)){
+  dims <- nrow(m)
+  # the actual line segment length 
+  seg_len <- 300
+  
+  df <- data.frame(x=rep(0, seg_len), y=rep(0, seg_len), seg = rep(0, seg_len))
+  
+  for (i in 1:seg_len){
+    if (i == 1){
+      x <- sp[j, 'x']
+      y <- sp[j, 'y']
+      df[i, ] <- c(x, y, j)
+    } else {
+      theta <- m[round(y, 0), round(x, 0)+1] # find the closest angle to x & y
+      x <- x + cos(theta) * 0.1 # 0.1 controls how far apart the new x & y 
+      y <- y + sin(theta) * 0.1 # are from the previous values
+      if (x > dims - 1 | x < 1) break  # prevents lines going out of bounds
+      if (y > dims | y < 1) break
+      df[i, ] <- c(x, y, j)
+    }
+  }
+  df <- df %>% filter(seg != 0) # get rid of empty rows if lise was out of bounds
+  ifelse(j==1, df_new <- df, df_new <- df_new %>% bind_rows(df))
+}
+
+p1<- 
+  ggplot(df_new) + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Gridded Starting Points")
+
+# random starting lines for comparison
+p2 <-
+  get_lines(M=m, segment_length=5, num_lines=400)  %>%
+  ggplot() + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Random Starting Points")
+
+gridExtra::grid.arrange(p1, p2, nrow=1)
+```
+
+### Starting Points In A Circle
+
+I also added jitter to the starting points in an attempt to get rid of the grid effect in the previous image.
+
+```{r}
+# create points in a circle with radius 2
+a <- runif(10) * 2 * pi
+r <- 2 * sqrt(runif(10))
+att <- data.frame(x = r*cos(a), y = r*sin(a))
+
+seg_len <- 300
+
+sp <- expand.grid(y=seq(2, 99, length.out=10), x=seq(2, 99, length.out=10))
+sp$x <- jitter(sp$x, amount=4)
+sp$y <- jitter(sp$y, amount=4)
+sp2 <- data.frame(x=rep(0, seg_len*nrow(att)), y=rep(0, seg_len*nrow(att)))
+
+for (i in 1:nrow(sp)){
+  sp2[(i-1)*10 + 1:10, 'x'] <- sp[i, 'x'] + att[, 'x']
+  sp2[(i-1)*10 + 1:10, 'y'] <- sp[i, 'y'] + att[, 'y']
+}
+
+for (j in 1:nrow(sp2)){
+  dims <- nrow(m)
+
+  df <- data.frame(x=rep(0, seg_len), 
+                   y=rep(0, seg_len), 
+                   seg = rep(0, seg_len))
+  
+  for (i in 1:seg_len){
+    if (i == 1){
+      x <- sp2[j, 'x']
+      y <- sp2[j, 'y']
+      df[i, ] <- c(x, y, j)
+    } else {
+      if (x > dims - 1 | x < 1) break  # prevents lines going out of bounds
+      if (y > dims | y < 1) break
+      theta <- m[round(y, 0), round(x, 0)+1] # find the closest angle to x & y
+      x <- x + cos(theta) * 0.1 # 0.1 controls how far apart the new x & y 
+      y <- y + sin(theta) * 0.1 # are from the previous values
+
+      df[i, ] <- c(x, y, j)
+    }
+  }
+  df <- df %>% filter(seg != 0) # get rid of empty rows if line was out of bounds
+  ifelse(j==1, df_new <- df, df_new <- df_new %>% bind_rows(df))
+}
+
+ggplot(df_new) + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color="black", alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none") +
+  ggtitle("Starting Points In A Circle")
+```
+
+### Starting Points On Just One Side And Color Gradient Along Lines
+
+I like the spectral color palette on a black background, so changing up several things in this plot.
+
+```{r}
+sp <- data.frame(x=rep(1, 200), y=seq(1, 99, length.out=100))
+
+for (j in 1:nrow(sp)){
+  dims <- nrow(m)
+  # the actual line segment length 
+  seg_len <- 600
+  
+  df <- data.frame(x=rep(0, seg_len), 
+                   y=rep(0, seg_len), 
+                   seg = rep(0, seg_len), 
+                   step = rep(0, seg_len))
+  
+  for (i in 1:seg_len){
+    if (i == 1){
+      x <- sp[j, 'x']
+      y <- sp[j, 'y']
+      df[i, ] <- c(x, y, j, i)
+    } else {
+      theta <- m[round(y, 0), round(x, 0)+1] # find the closest angle to x & y
+      x <- x + cos(theta) * 0.1 # 0.1 controls how far apart the new x & y 
+      y <- y + sin(theta) * 0.1 # are from the previous values
+      if (x > dims - 1 | x < 1) break  # prevents lines going out of bounds
+      if (y > dims | y < 1) break
+      df[i, ] <- c(x, y, j, i)
+    }
+  }
+  df <- df %>% filter(seg != 0) # get rid of empty rows if lise was out of bounds
+  ifelse(j==1, df_new <- df, df_new <- df_new %>% bind_rows(df))
+}
+
+ggplot(df_new) + 
+  geom_path(aes(x=x, y=y, group=seg, color=step), 
+            alpha=0.5, size=0.5, 
+            lineend="round", linejoin="bevel") +
+  scale_color_distiller(palette = "Spectral") +
+  theme_void() +
+  theme(legend.position="none",
+        panel.background = element_rect(fill = 'black', color = 'black')) +
+  ggtitle("One-Sided Starting Points")
+```
+
+### Change Line Thickness
+
+To come full circle, I'm using Perlin noise to change the width of the lines.
+
+```{r}
+
+for (j in 1:400){
+  dims <- nrow(m)
+  # the actual line segment length 
+  seg_len <- sample(dims:dims*5, 1)
+  
+  df <- data.frame(x=rep(0, seg_len), y=rep(0, seg_len), seg = rep(0, seg_len))
+  
+  for (i in 1:seg_len){
+    if (i == 1){
+      x <- runif(1, 1, dims-1) # random starting value for x
+      y <- runif(1, 1, dims-1) # random starting value for y
+      df[i, ] <- c(x, y, j)
+    } else {
+      theta <- m[round(y, 0), round(x, 0)+1] # find the closest angle to x & y
+      x <- x + cos(theta) * 0.1 # 0.1 controls how far apart the new x & y 
+      y <- y + sin(theta) * 0.1 # are from the previous values
+      if (x > dims - 1 | x < 1) break  # prevents lines going out of bounds
+      if (y > dims | y < 1) break
+      df[i, ] <- c(x, y, j)
+    }
+  }
+  df <- df %>% filter(seg != 0) # get rid of empty rows if lise was out of bounds
+  df$col <- sample(c("#3CAEA3", "#F6D55C", "#ED553B"), 1)
+  df$wid <- noise_perlin(c(nrow(df), nrow(df)))[1, ]
+  ifelse(j==1, df_new <- df, df_new <- df_new %>% bind_rows(df))
+}
+
+
+ggplot(df_new) + 
+  geom_path(aes(x=x, y=y, group=seg), 
+            color=df_new$col, size=scales::rescale(df_new$wid, to=c(0.1, 2)),
+            lineend="round", linejoin="bevel") +
+  theme_void() +
+  theme(legend.position="none")
+
+```

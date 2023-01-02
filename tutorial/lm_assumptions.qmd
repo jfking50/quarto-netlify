@@ -1,0 +1,266 @@
+---
+title: "Linear Model Assumptions"
+author: "John King"
+date: "5/21/2020"
+format:
+  html:
+    toc: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  echo: true
+bibliography: references.bib
+link-citations: true
+---
+
+There are four assumptions fundamental to linear regression:
+
+1.  **Linearity:** The relationship between x and the mean of y is linear.
+2.  **Homoscedasticity:** The variance of residual is the same for any value of x (i.e, constant variance).
+3.  **Independence:** Independence of the prediction error from every one of the predictor variables.
+4.  **Normality:** The prediction error is normally distributed.
+
+When conducting linear regression, we need to always perform diagnostic check to ensure we are not violating any of the inherent assumptions.
+
+## Linearity
+
+The assumption is that the relationship between x and the mean of y is linear, but what does that mean exactly? A regression model is linear if $E[Y|X =x]$ is a linear function **of the** $\beta$ parameters, not of $x$. That means each of the following is a linear model:
+
+-   $\beta_{0} + \beta_{1}x$ [^1]
+-   $\beta_{0} + \beta_{1}x + \beta_{2}x^{2} + \beta_{3}x^{3}$
+-   $\beta_{0} + \beta_{1}log(x) + \beta_{2}sin(x)$
+
+[^1]: This model is linear in $\beta$ **and** x.
+
+These are *not* linear models:
+
+-   $\beta_{0} + x^{\beta_{1}}$
+
+-   $\frac{1}{\beta_{0} + \beta_{1}x}$
+
+-   $\frac{e^{\beta_{0}+\beta_{1}x_{1}}}{1+e^{\beta_{0}+\beta_{1}x_{1}}}$ [^2]
+
+[^2]: This is actually logistic regression, which is covered later.
+
+As with ANOVA, *R* produces diagnostic plots for objects created by the `lm()` function. The first plot may be used to evaluate both linearity and homoscedasticity. A linear relationship will be indicated by a (relatively) horizontal red line on the plot. Since our height-weight data is so simple, we'll switch to the `teengamb` dataset from the `faraway` package. This dataset consists of four predictor variables and one response (`gamble`). Read the help for `teengamb` to familiarize yourself with the data. Since one of the predictors is binary (`sex`), we'll exclude it for this example. [^3] A summary of the resulting linear model is as follows.
+
+[^3]: The variable was excluded for simplicity, not because we can't include binary predictors in a linear model. We'll cover this in a later section.
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(faraway)
+
+tg.lm = lm(gamble ~ . -sex, data=teengamb)
+summary(tg.lm)
+```
+
+The diagnostic plot to check the linearity assumption is the first plot returned, and we see a slight "U" shape to the red line. Notice that there are only three observations on the far right which appear to be heavily influencing the results. The conical spread of the data also strongly suggests heteroscedasticity might be an issue.
+
+```{r}
+plot(tg.lm, which = 1)
+```
+
+Another screening method is with a pairs plot, which we can quickly produce in base *R* with `pairs()`. This is a great way to do a quick check potential nonlinear relationships between pairs of variables. This is a screening method only, however, because we're projecting onto two dimensions, so we may be missing things lurking in higher dimensions.
+
+```{r}
+pairs(teengamb[, 2:5], upper.panel=NULL, lower.panel=panel.smooth)
+```
+
+If evidence of a nonlinear relationship exists, a linear model can still be used; however, either the response variable or one or more of the predictors must be transformed. This topic is covered in detail in the Advanced Designs chapter.
+
+## Homoscedasticity
+
+The procedure for testing constant variance in residuals in a linear model is similar to ANOVA. A plot of residuals versus fitted values is shown two plots ago, and we can look at the square root of standardized residuals versus fitted values. Both plots show strong evidence of heteroscedasticity.
+
+```{r}
+plot(tg.lm, which = 3)
+```
+
+There is no doubt some subjectivity to visual inspections. As a guide, consider the next three sets of plots that show constant variance, mild heteroscedasticity, and strong heteroscedasticity.
+
+Constant variance:
+
+```{r}
+par(mfrow = c(3,3), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+
+n <- 50 
+for(i in 1:9) {x <- runif(n); plot(x,rnorm(n))} 
+```
+
+Mild heteroscedasticity:
+
+```{r}
+par(mfrow = c(3,3), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+
+for(i in 1:9) {x <- runif(n); plot(x,sqrt((x))*rnorm(n))} 
+```
+
+Strong heteroscedasticity:
+
+```{r}
+par(mfrow = c(3,3), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+
+for(i in 1:9) {x <- runif(n); plot(x,x*rnorm(n))}
+```
+
+The linear model analog to the Levene test is the Breusch-Pagan test. The null hypothesis is that the residuals have constant variance, and the alternative is that the error variance changes with the level of the response or with a linear combination of predictors. The `ncvTest()` from the `car` (companion to applied regression) package performs the test, and when applied to the `tg.lm` object confirms our suspicion of non-constant variance based on our visual inspection.
+
+```{r message=FALSE, warning=FALSE}
+car::ncvTest(tg.lm)
+```
+
+## Independence
+
+The concept of independent (and identically distributed) data was covered in the statistics review and ANOVA chapters. It is no different when conducting linear regression and so will not be repeated here.
+
+## Normality
+
+Again, checking whether the residuals are normally distributed is the same for linear regression as for ANOVA. Create a Q-Q plot and apply the Shapiro-Wilk test as shown below.
+
+```{r}
+plot(tg.lm, which=2)
+
+shapiro.test(residuals(tg.lm))
+```
+
+## Unusual Observations
+
+Although not an assumption inherent to a linear model, it's good practice to also check for unusual observations when performing diagnostic checks. There are two types of unusual observations: outliers and influential. An **outlier** is an observation with a large residual - it plots substantially above or below the regression line. An **influential observation** is one that substantially changes the model fit. Keep in mind that it is possible for an observation to have both characteristics. Examples of both types of observations are shown on the following plot (note that I rigged observations 11 and 12 to be unusual observations).
+
+```{r}
+#| echo: false
+set.seed(42)
+
+df = tibble(
+  x = c(seq(0,3,length=10),1,10),
+  y = c(1 + 0.1*x[1:10] + rnorm(10, sd=0.5), 5, 11)
+  )
+
+ggplot() +
+  annotate("text", x=2, y=5, label="Outlier") +
+  annotate("text", x=0.5, y=3.2, label="Residual", color='blue', angle=90) +
+  annotate("text", x=8.75, y=11, label="Influential") +
+  annotate("text", x=6, y=2, label="Leverage", color='blue') +
+  geom_segment(aes(x=1, xend=1, y=5, yend=1.5), color='blue', linetype=2) +
+  geom_segment(aes(x=2, xend=10, y=1.5, yend=1.5), color='blue', linetype=2) +
+  geom_smooth(data = df, aes(x, y), se=FALSE, method="lm", color='red', formula='y~x') +
+  geom_point(data = df, aes(x, y)) +
+  scale_color_manual(values = c('black', 'red')) +
+  ggtitle("Unusual Observations") +
+  xlab("x") + ylab("y") +
+  coord_fixed() +
+  theme_bw() +
+  theme(legend.position="none")
+```
+
+It's not necessarily bad to have unusual observations, but it's good practice to check for them, and, if found, decide what to do about them. A point with high **leverage** falls within the predictor space but is significantly separated from the other points. It has the potential to influence the fit but may not actually do so.
+
+### Leverage Points
+
+The amount of leverage associated with each observation is called the **hat value** and are the diagonal elements of the **hat matrix**, which you can read more about [here](https://www.sciencedirect.com/topics/mathematics/hat-matrix), if you're interested (or just really like linear algebra). The gist of it is that the sum of the hat values equals the number of observations. If every observation has exactly the same leverage, then the hat values will all equal $p/n$, where p is the number of parameters and n is the number of observations (in our example we just have two parameters, so it's $2/n$). Increasing the hat value of one observation necessitates decreasing the hat values of the others, so we're essentially looking for hat values significantly greater than this theoretical average. The generally accepted rule of thumb is that hat values greater than \~ $2p/n$ times the averages should be looked at more carefully. Extracting hat values from a linear model in *R* is done using the `hatvalues()` or `influence()` functions.
+
+```{r}
+df.lm = lm(y~x, data=df)
+hatv = hatvalues(df.lm)
+print(hatv)
+
+influence(df.lm)$hat
+```
+
+Verify that the sum of the hat values equals the number of parameters (2):
+
+```{r}
+print(paste("Sum of hat values:", sum(hatv)))
+```
+
+Are any hat values \> $2p/n$ (recall I rigged observation 12)?
+
+```{r}
+hatv > 4/length(df$x)
+```
+
+A graphical way of looking at leverage is with the `halfnorm()` function in the `faraway` package, which plots leverage against the positive normal quantiles. I added a red line to indicate the rule of thumb threshold.
+
+```{r}
+faraway::halfnorm(hatv,ylab="Leverages")
+abline(h=2*mean(hatv), col='red')
+```
+
+Another measure of leverage is **Cook's Distance**, defined as:
+
+$$D_{i}=\frac{r^{2}_{i}}{p}\left(\frac{h_{i}}{1-h_{i}}\right)$$
+
+The rule of thumb for Cook's Distance is an observation with $D>1$, and we can get these values in *R* with `cooks.distance()`.
+
+```{r}
+cooks.distance(df.lm)
+```
+
+The fourth linear model plot also contains Cook's Distance.
+
+```{r}
+plot(df.lm, which=4)
+```
+
+### Outliers
+
+The hat values from the previous section are also used to calculate **standardized residuals**, $r_{i}$.
+
+$$r_{i}=\frac{\hat{\varepsilon}_{i} }{\hat{\sigma}\sqrt{1-h_{i}}}, i=1,...,n $$
+
+where $\hat{\varepsilon}$ are the residuals, $\hat{\sigma}$ is the estimated residual standard error, and $h$ is the leverage. The rule of thumb for identifying unusually large standardized residuals is if $|r_{i}| > 2$. We can get standardized residuals in *R* with `rstandard()`.
+
+```{r}
+rstandard(df.lm)
+```
+
+Here we see that observation 11 is a potential outlier, and the observation 12 is both a high leverage point and a potential outlier.
+
+We can also look at **studentized residuals**, which are defined as:
+
+$$t_{i} = r_{i}\sqrt{\frac{n-p-1}{n-p-r^{2}_{i}}}$$
+
+In *R*, we can use `rstudent()`:
+
+```{r}
+rstudent(df.lm)
+```
+
+It may be useful to view all of these measures together and apply some conditional formatting.
+
+```{r}
+#| message: false
+#| warning: false
+library(kableExtra)
+
+df %>% 
+  mutate(
+    obs = 1:nrow(df),
+    r.standard = round(rstandard(df.lm), 3),
+    r.student = round(rstudent(df.lm), 3), 
+    i.hatv = round(hatvalues(df.lm), 3),
+    i.cook = round(cooks.distance(df.lm), 3)) %>%
+  mutate(
+    r.standard = cell_spec(
+      r.standard, "html", color=ifelse(abs(r.standard)>2,"red", "green")),
+    r.student = cell_spec(
+      r.student, "html", color=ifelse(abs(r.student)>2,"red", "green")),
+    i.hatv = cell_spec(
+      i.hatv, "html", color=ifelse(i.hatv>4/nrow(df),"red", "green")),
+    i.cook = cell_spec(i.cook, "html", color=ifelse(i.cook>1,"red", "green"))) %>%
+  kable(format = "html", escape = F) %>%
+  kable_styling("striped", full_width = F)
+```
+
+### What To Do About Unusual Observations
+
+In the book, Linear Models With R [@faraway2014], Faraway gives advice on this topic that I'll paraphrase:
+
+1.  Check for data entry errors and correct any that are found.
+2.  Consider the context. An unusual observation may be the single most important observation in the study.
+3.  Exclude the observation from the dataset and refit a model. If it makes little to no difference in your analysis, then it's usually best to leave it in.
+4.  Do not automate the process of excluding outliers (see #2 above).
+5.  If you exclude an observation, document it in your report and explain your rationale so that your analytic integrity is not questioned.

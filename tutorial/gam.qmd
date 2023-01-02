@@ -1,0 +1,169 @@
+---
+title: "Generalized Additive Models"
+author: "John King"
+date: "5/29/2020"
+format:
+  html:
+    toc: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  echo: true
+bibliography: references.bib
+link-citations: true
+---
+
+```{r setup, include=FALSE}
+library(Cairo)
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message=FALSE, 
+  warning=FALSE,
+  dev.args = list(png = list(type = "cairo"))
+  )
+```
+
+Recall that if there is a non-linear relationship between predictor and response, we can attempt to transform the predictor using a known function (log, reciprocal, polynomial, etc.) to improve the model structure and fit. What if the relationship is more complex and is not well captured with a known function? Generalized additive models may be used in these cases.
+
+Recall that a linear model takes the form:
+
+$$y=\beta_{0}+\beta_{1}x_{1}+\beta_{2}x_{2}+...+\varepsilon$$
+
+Additive models replace the linear terms (the $\beta$s) with flexible smoothing functions and take the form:
+
+$$y=\beta_{0}+f_{1}(x_{1})+f_{2}(x_{2})+...+\varepsilon$$
+
+There are many techniques and options for selecting the smoothing functions, but for this tutorial, we'll discuss two: locally weighted error sum of squares (lowess and also commonly abbreviated as loess) and smoothing splines.
+
+### Loess
+
+For the theory behind loess smoothing, please read [this page](https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd144.htm) on the NIST website. This chapter will focus on implementing loess smoothing in *R*.
+
+All smoothers have a tuning parameter that controls how smooth the smoother is. The tuning parameter in loess is referred to as the span with larger values producing more smoothness.
+
+```{r}
+library(tidyverse)
+set.seed(42)
+
+df = tibble(
+  x = runif(100, 1.5, 5.5),
+  y = sin(x*pi) + 2 + runif(100, 0, 0.5)
+)
+
+ex1.ls = loess(y~x, span=0.25, data=df)
+ex2.ls = loess(y~x, span=0.5, data=df)
+ex3.ls = loess(y~x, span=0.75, data=df)
+xseq = seq(1.6, 5.4,length=100)
+
+df = df %>% mutate(
+  span25 = predict(ex1.ls, newdata=tibble(x=xseq)),
+  span50 = predict(ex2.ls, newdata=tibble(x=xseq)),
+  span75 = predict(ex3.ls, newdata=tibble(x=xseq))
+  )
+
+ggplot(df) +
+  geom_point(aes(x, y)) +
+  geom_line(aes(x=xseq, span25, linetype='span = 0.25'), color='red') +
+  geom_line(aes(x=xseq, span50, linetype='span = 0.50'), color='red') +
+  geom_line(aes(x=xseq, span75, linetype='span = 0.75'), color='red') +
+  scale_linetype_manual(name="Legend", values=c(1,2,3)) +
+  ggtitle("Loess Smoother Example") +
+  theme_bw()
+```
+
+From this plot, a span of 0.75 provided too much smoothness, whereas the lower values of span we tested appear to be a better fit. Now let's apply this to the `airqaulity` data set from the previous chapter. Initially, we'll just consider the response(`Ozone`) and one predictor (`Solar.R`).
+
+```{r message=FALSE, warning=FALSE}
+aq1.ls = loess(Ozone ~ Solar.R, span=0.25, data=airquality)
+aq2.ls = loess(Ozone ~ Solar.R, span=0.5, data=airquality)
+aq3.ls = loess(Ozone ~ Solar.R, span=0.75, data=airquality)
+srseq = seq(10, 330, length=nrow(airquality))
+
+aq = airquality %>% mutate(
+  span25 = predict(aq1.ls, newdata=tibble(Solar.R=srseq)),
+  span50 = predict(aq2.ls, newdata=tibble(Solar.R=srseq)),
+  span75 = predict(aq3.ls, newdata=tibble(Solar.R=srseq))
+  )
+
+ggplot(aq) +
+  geom_point(aes(Solar.R, Ozone)) +
+  geom_line(aes(x=srseq, span25, linetype='span = 0.25'), color='red') +
+  geom_line(aes(x=srseq, span50, linetype='span = 0.50'), color='red') +
+  geom_line(aes(x=srseq, span75, linetype='span = 0.75'), color='red') +
+  scale_linetype_manual(name="Legend", values=c(1,2,3)) +
+  ggtitle("Loess Smoother Example") +
+  theme_bw()
+```
+
+Here we can see that the higher span values appear to provide a better fit. In this case, choosing a low span value would be akin to over fitting a linear model with too high of a degree of polynomial. We can repeat this process to determine appropriate values of span for the other predictors.
+
+Including loess smoothers in a GAM is as simple as including the non-linear terms within `lo()`. The `gam` package provides the needed functionality. The script below applies loess smoothers to three of the predictors and displays the model summary (note that the default value for span is 0.5).
+
+```{r message=FALSE, warning=FALSE}
+library(gam)
+
+aq.gam = gam(Ozone ~ lo(Solar.R, span=0.75) + lo(Wind) + lo(Temp), data=airquality, na=na.gam.replace)
+summary(aq.gam)
+```
+
+```{r, fig.width=10, fig.height=4}
+par(mfrow=c(1,3))
+plot(aq.gam, se=TRUE)
+```
+
+### Splines
+
+Spline smoothing can be conceptualized by imagining that your task is to bend a strip of soft metal into a curved shape. One way to do this would be to place pegs on a board (referred to as "knots" in non-linear regression parlance) to control the bends, and then guide the strip of metal over and under the pegs. Mathematically, this is accomplished by combining cubic regression at each knot with calculus to smoothly join the individual bends. The tuning parameter in the `smooth.splines` function is `spar`.
+
+```{r}
+aq = aq %>% drop_na()
+
+ss25 = smooth.spline(aq$Solar.R,aq$Ozone,spar=0.25)
+ss50 = smooth.spline(aq$Solar.R,aq$Ozone,spar=0.5)
+ss75 = smooth.spline(aq$Solar.R,aq$Ozone,spar=0.75)
+
+ggplot() +
+  geom_point(data=aq, aes(Solar.R, Ozone)) +
+  geom_line(aes(x=ss25$x, ss25$y, linetype='spar = 0.25'), color='red') +
+  geom_line(aes(x=ss50$x, ss50$y, linetype='spar = 0.50'), color='red') +
+  geom_line(aes(x=ss75$x, ss75$y, linetype='spar = 0.75'), color='red') +
+  scale_linetype_manual(name="Legend", values=c(1,2,3)) +
+  ggtitle("Spline Smoother Example") +
+  theme_bw()
+```
+
+### Cross Validation
+
+Comparing the spline smoother plot to the one generated with loess smoothers, we can see that the two methods essentially accomplish the same thing. It's just a matter of finding the right amount of smoothness, which can be done through cross validation. The `fANCOVA` package contains a function `loess.aq()` that includes a criterion parameter that we can set to `gcv` for generalized cross validation, which is an approximation for leave-one-out cross-validation @hastie2008. Applying this function to the `airquality` data with `Solar.R` as the predictor and `Ozone` as the response, we can obtain a cross validated value for span.
+
+```{r}
+library(fANCOVA)
+
+aq.solar.cv = loess.as(aq$Solar.R, aq$Ozone, criterion="gcv")
+summary(aq.solar.cv)
+```
+
+`loess.as` also includes a plot method so we can visualize the loess smoother.
+
+```{r}
+loess.as(aq$Solar.R, aq$Ozone, criterion="gcv", plot=TRUE)
+```
+
+Cross validation is also built in to `smooth.spline()` and is set to generalized cross validation by default. Instead of specifying `spar` in the call to `smooth.spline()`, we just leave it out to invoke cross validation.
+
+```{r}
+aq.spl = smooth.spline(aq$Solar.R, aq$Ozone)
+aq.spl
+```
+
+Plotting the cross validated spline smoother, we get a line that looks very similar to the lasso smoother.
+
+```{r}
+ggplot() +
+  geom_point(data=aq, aes(Solar.R, Ozone)) +
+  geom_line(aes(x=aq.spl$x, aq.spl$y), color='red') +
+  ggtitle("CV Spline Smoother") +
+  theme_bw()
+```

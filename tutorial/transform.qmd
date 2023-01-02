@@ -1,0 +1,175 @@
+---
+title: "Variable Transformation"
+author: "John King"
+date: "5/25/2020"
+format:
+  html:
+    toc: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  echo: true
+bibliography: references.bib
+link-citations: true
+---
+
+```{r setup, include=FALSE}
+library(Cairo)
+
+knitr::opts_chunk$set(
+  dev.args = list(png = list(type = "cairo"))
+  )
+```
+
+If we have data that includes factors with more than two levels, we have the ability to evaluate non-linear relationships between predictor and response variables. Incorporating non-linear terms in a linear model is accomplished by transforming either the response or predictors. For an overview of transformation, read [Transformations: an introduction](http://fmwww.bc.edu/RePEc/bocode/t/transint.html) by Nicholas J. Cox at Durham University. Skip the section titled "How to do transformations in Stata"; we'll replace that with "How to do transformations in *R*" below.
+
+### Identifying Non-Linear Relationships
+
+I think the simplest way to screen your data for potential non-linear relationships is with a pairs plot that includes a smoother. To demonstrate, I'll create data using a central composite design and add a response, y, that has a non-linear relationship with the `speed` and `stealth` factors. I also subtracted 2 from the stealth factor to center it at 0.
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(GGally)
+
+set.seed(42)
+
+ccdGrid = tibble(
+  x1 = c(c(1,3,2,2,2,2,2), rep(c(1,3), 4)),
+  x2 = c(c(2,2,1,3,2,2,2), rep(c(1,3,1,3), each = 2)),
+  x3 = c(c(2,2,2,2,1,3,2), rep(1,4), rep(3,4)),
+  star = c(rep('y', 7), rep('n',8)),
+  line = c(rep('line1',2), rep('line2',2), rep('line3',2), rep('none',9))
+)
+
+
+ccd = tibble(speed = ccdGrid$x1, 
+             stealth = ccdGrid$x2 - 2, 
+             surv = ccdGrid$x3, 
+             y = log(speed) - stealth^2 + surv)
+
+smooth_fn <- function(data, mapping, ...){
+  ggplot(data = data, mapping = mapping) + 
+    geom_point() + 
+    geom_smooth(formula = y~x, method=loess, fill="red", color="red", se=FALSE, ...)
+}
+
+ggpairs(ccd, lower=list(continuous=smooth_fn), progress=FALSE) + theme_bw()
+```
+
+A visual inspection of the last row of plots is enough to identify the non-linear relationships that speed and stealth have with the response. We can also look at the density plot for the response (the lower right curve) and see some skewness away from a normal distribution.
+
+### Checking Model Structure
+
+Generating a pairs plot is a screening process only. For a more complete analysis, we need to check the model structure. Recall that one of the key assumptions of the linear regression model is that the regression errors are independent and identically distributed. If that assumption is not true, then the non-linear portion of the relationship between predictor and response will be contained in the (estimated) residuals, $\hat{\varepsilon}$. Plotting the residuals versus the individual predictors is one method of checking model structure. In *R*, we can do this with `termplot`.
+
+```{r}
+# first, we need a linear model
+ccd.lm = lm(y ~ ., data=ccd)
+par(mfrow=c(1,3))
+termplot(ccd.lm, partial.resid = TRUE, col.res='blue', main="Residuals vs. Predictor")
+```
+
+In these plots, we're checking for whether there is a non-linear shape to the data by looking for trends in the blue circles. The red lines are the coefficients from the linear model for reference. The non-linear shape to stealth is clearly visible, but we're missing the non-linearity in speed. Unfortunately, partial residual plots only *suggest* transformations for the predictors because they are influenced by other predictor variables, and (if present) influential observations and multicollinearity. The process is done manually in *R*. First, since stealth appears to be an inverse square, we'll transform that variable, then re-fit the model, and check the partial residuals again. Before we do that, we need to know how to transform variables.
+
+### How To Transform Variables In *R*
+
+To account for non-linear relationships in a linear model, we need to transform the variables in the `lm` function. From the partial residuals plot, we know we should try a quadratic term for stealth. Summaries of linear models without and then with the transformation are shown below for the `ccd` data.
+
+Without transformation:
+
+```{r}
+ccd.lm = lm(y ~ speed + stealth + surv, data = ccd)
+summary(ccd.lm)
+```
+
+With transformation:
+
+```{r}
+ccd_t.lm = lm(y ~ speed + I(stealth^2) + surv, data = ccd)
+summary(ccd_t.lm)
+```
+
+Notice in the call to `lm` with the transformed variables, the polynomial term is surrounded by `I()`. This is to avoid confusion between arithmetic and symbolic uses of `+` in the `formula` function (see `?formula` for more details). Let's take another look at the partial residual plots with stealth transformed.
+
+```{r}
+par(mfrow=c(1,3))
+
+termplot(ccd_t.lm, 
+         partial.resid = TRUE, 
+         col.res='blue', 
+         main="Residuals vs. Predictor")
+```
+
+Stealth looks much better, and now we're able to see the non-linear relationship with speed. Re-fit and plot again with a log transformation on speed.
+
+```{r}
+ccd_t2.lm = lm(y ~ log(speed) + I(stealth^2) + surv, data = ccd)
+
+par(mfrow=c(1,3))
+
+termplot(ccd_t2.lm, 
+         partial.resid = TRUE, 
+         col.res='blue', 
+         main="Residuals vs. Predictor")
+```
+
+I didn't add any error to the data, so we now have a perfect fit. With real-world data, there will be noise, and the best transformation isn't known in advance. The following chart from [Stats With Cats](https://statswithcats.wordpress.com/2010/11/21/fifty-ways-to-fix-your-data/) is a useful guide when determining what transformations to try.
+
+![](https://statswithcats.files.wordpress.com/2010/11/independent-variable-transformations.jpg)
+
+Now consider results from the 17-point NOLH we created earlier. I added a response, y, with a non-linear relationship to one of the factors, and I added some noise to make this example more realistic. Plotting just these two variables with a linear regression line reveals a little curvature to the trend, but it's not extreme.
+
+```{r}
+#| include: false
+set.seed(42)
+nolh = tibble(x = 1:17, 
+              y = x + x^3 + rnorm(17, sd = 5)
+              )
+```
+
+```{r}
+nolh.lm1 = lm(y~x, data=nolh)
+termplot(nolh.lm1, partial.resid = TRUE, col.res='blue')
+```
+
+We've picked up the non-linear shape, and it looks like we need some degree of polynomial as a transformation. For reference, let's look at the linear model summary.
+
+```{r}
+summary(nolh.lm1)
+```
+
+That's not a bad fit, but we can probably improve it by trying a transformation. The curvature suggests a polynomial might be better, so let's try a second degree polynomial fit. First the plot, then the linear model summary.
+
+```{r}
+#| echo: false
+nolh.lm2 = lm(y ~ I(x^2), data=nolh)
+
+termplot(nolh.lm2, partial.resid = TRUE, col.res='blue')
+
+summary(nolh.lm2)
+```
+
+The plot looks better than the first one. This model also has a higher $R^{2}$ than the first one, so perhaps it is a better fit. What happens if we continue to add higher order polynomials? The `poly()` function is useful for this purpose.
+
+```{r}
+nolh.poly = lm(y~poly(x, 15), data = nolh)
+summary(nolh.poly)
+```
+
+With a 15th order polynomial we get an $R^{2}$ of `r summary(nolh.poly)$adj.r.squared`, which is a nearly perfect fit. Notice the p-values, though. They indicate that the best model is actually the one with the second order term. Why is the best model not the one with the highest $R^{2}$? What we've done is over-fit the model to the data. We can see this by plotting the two polynomial fits.
+
+```{r}
+#| echo: false
+ggplot(nolh) +
+  geom_point(aes(x=x, y=y)) +
+  geom_smooth(aes(x=x, y=y, color="2nd Order"), formula=y~poly(x, 2), method="lm", se=FALSE) +
+  geom_smooth(aes(x=x, y=y, color="15th Order"), formula=y~poly(x, 15), method="lm", se=FALSE) +
+  scale_colour_manual(name="Legend", values=c("blue", "red")) +
+  ggtitle("2nd vs. 15th Order Polynomial Fit") +
+  theme_bw()
+```
+
+While the model with a 15th order polynomial perfectly fits these data, the model with the second order polynomial will generalize much better and is preferred.
