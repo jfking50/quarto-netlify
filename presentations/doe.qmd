@@ -82,7 +82,7 @@ EUCOM Scenario - 14 modernization programs
 
 ## Fractional Factorial Designs
 
-Start with the full factorial design, re-code with -1 and 1, and show all interactions. Then delete lower half of the design matrix and the resulting collinear columns.
+Start with the full factorial design, re-code with -1 and 1, and show all interactions. Then delete lower half of the design matrix and the resulting co-linear columns.
 
 ```{r echo=FALSE}
 library(tidyverse)
@@ -109,7 +109,7 @@ FFdesign2 %>% kbl(align='c') %>% kable_paper(full_width=F) %>%
 ::: notes
 The full factorial design from the previous slide is represented here in numeric form. The first column is the design point (DP), or run number. The second column consists of all 1s to capture the y-intercept term that will later be used with regression. X1, X2, and X3 represent the three OMFV systems where a -1 represents the current system (e.g., 25mm main gun), and a 1 represents the future system. The next three columns represent all of the possible 2-way interaction terms. The values in these interaction columns are the product of the two respective individual columns (e.g., column X1X2 is the product of column X1 and X2). The farthest right column represents the 3-way interaction term.
 
-The number of design points in a full factorial design can be reduced by deleting the bottom half of the design matrix (shown in blue). However, doing so produces collinear columns in the upper half of the table. For example, the remaining column X1 is the inverse of column X1X3, and so the X1X3 column must be eliminated. The other columns shown in blue must also be eliminated due to collinearity.
+The number of design points in a full factorial design can be reduced by deleting the bottom half of the design matrix (shown in blue). However, doing so produces colinear columns in the upper half of the table. For example, the remaining column X1 is the inverse of column X1X3, and so the X1X3 column must be eliminated. The other columns shown in blue must also be eliminated due to co-linearity.
 :::
 
 ## Resulting Design
