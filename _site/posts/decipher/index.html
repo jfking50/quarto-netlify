@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="John King">
+<meta name="dcterms.date" content="2020-03-30">
+<meta name="description" content="Decrypt a substitution cypher using the Markov Chain Monte Carlo method.">
+
+<title>A Random Walk - Substitution Cyphers</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">A Random Walk</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorials</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorials">    
+        <li>
+    <a class="dropdown-item" href="../../tutorial/slr.html">
+ <span class="dropdown-text">Simple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/lm_assumptions.html">
+ <span class="dropdown-text">Linear Model Assumptions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/mlr.html">
+ <span class="dropdown-text">Multiple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/model_selection.html">
+ <span class="dropdown-text">Model Selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/transform.html">
+ <span class="dropdown-text">Variable Transformation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/logistic.html">
+ <span class="dropdown-text">Logistic Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/advanced.html">
+ <span class="dropdown-text">Advanced Designs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/np_anova.html">
+ <span class="dropdown-text">Nonparametric ANOVA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/gam.html">
+ <span class="dropdown-text">Generalized Additive Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/svm.html">
+ <span class="dropdown-text">Support Vector Machines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/random_forest.html">
+ <span class="dropdown-text">Random Forests</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../tutorial/nn_regression.html">
+ <span class="dropdown-text">Neural Network Regression</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-presentations" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Presentations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-presentations">    
+        <li>
+    <a class="dropdown-item" href="../../presentations/doe.qmd">
+ <span class="dropdown-text">Design of Experiments</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html">
+ <span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jfking50"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div class="quarto-toggle-container">
+                  <a href="" class="quarto-color-scheme-toggle nav-link" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+              </div>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#cryptography-background" id="toc-cryptography-background" class="nav-link active" data-scroll-target="#cryptography-background">Cryptography Background</a></li>
+  <li><a href="#monte-carlo-markov-chain-method" id="toc-monte-carlo-markov-chain-method" class="nav-link" data-scroll-target="#monte-carlo-markov-chain-method">Monte Carlo Markov Chain Method</a>
+  <ul class="collapse">
+  <li><a href="#two-letter-transitions" id="toc-two-letter-transitions" class="nav-link" data-scroll-target="#two-letter-transitions">Two Letter Transitions</a></li>
+  <li><a href="#metropolis-hastings-algorithm" id="toc-metropolis-hastings-algorithm" class="nav-link" data-scroll-target="#metropolis-hastings-algorithm">Metropolis-Hastings Algorithm</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Substitution Cyphers</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+  <div class="quarto-categories">
+    <div class="quarto-category">python</div>
+    <div class="quarto-category">cryptology</div>
+    <div class="quarto-category">stochastic methods</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Decrypt a substitution cypher using the Markov Chain Monte Carlo method.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>John King </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 30, 2020</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Stanford professor Persi Diaconis described an event when a psychologist from the California prison system brought encoded messages obtained from inmates to the Statistics Department’s drop-in consulting service and asked if the messages could be decrypted<span class="citation" data-cites="diaconis2008">(<a href="#ref-diaconis2008" role="doc-biblioref">Diaconis 2008</a>)</span>. The problem was tackled by Stanford student Marc Coram, who guessed that the message was encoded using a simple substitution cipher. Using the Markov Chain Monte Carlo (MCMC) method, Coram’s algorithm was able to correctly decipher the message without enumerating through all of the possible letter combinations. This paper presents an algorithm in Python that replicates Coram’s approach and evaluates some minimum conditions required for the technique to be successful. The Python code used for this project is included as an appendix to this report.</p>
+<section id="cryptography-background" class="level2">
+<h2 class="anchored" data-anchor-id="cryptography-background">Cryptography Background</h2>
+<p>Text encryption is the process of turning intelligible text into unintelligible text, and text decryption is the opposite process. A cipher is a pair of algorithms the create the encrypted and decrypted texts. The operation of the cipher is controlled by the both the algorithm and a key. The cipher used in the inmates’ messages substituted a different symbol for each letter of the alphabet, punctuation, and spaces between words. Instead of using symbols in this project, letters were randomly chosen to substitute for other letters in a string of text.</p>
+</section>
+<section id="monte-carlo-markov-chain-method" class="level2">
+<h2 class="anchored" data-anchor-id="monte-carlo-markov-chain-method">Monte Carlo Markov Chain Method</h2>
+<p>When faced with the challenge of deciphering text encoded with a substitution cipher, an initial approach might be to attempt to match letter frequencies in the encoded text with average letter frequencies for the English language. Chen tried this approach and found that it had limited success, correctly decoding just 16 out of 26 letters. Because of this, Coram instead used two letter transition frequencies.</p>
+<section id="two-letter-transitions" class="level3">
+<h3 class="anchored" data-anchor-id="two-letter-transitions">Two Letter Transitions</h3>
+<p>For this project, I obtained a text file of <em>War and Peace</em> from www.textfiles.com and counted the number of times each of the two letter combinations appeared. All numbers, punctuation, and spaces were combined into a single category of a non-letter. I used the space character to represent these non-letters in order to have the resulting decrypted text be more readable. I chose <em>War and Peace</em> as the reference text because of its length. A longer text produces a larger sample size for calculating statistics on two-letter frequencies. Additionally, a novel is a better choice than a dictionary of the English language because the resulting two-letter frequencies will represent what would be expected in natural language. For example, since the word “the” is the most common word in written English, the two-letter pairs of TH and HE should be relatively frequent.</p>
+<p><img src="teaser.png" class="img-fluid"></p>
+<p>This is a plot of the normalized transition probabilities that I used to check the accuracy of the Python function. The QU transition stands out, and the TH and HE frequencies are high as expected from the common use of the word “the”. T is the most common letter to start a word, and D and Y are the most common letters to end a word. These results match expectations, so the function appears to be correct.</p>
+</section>
+<section id="metropolis-hastings-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="metropolis-hastings-algorithm">Metropolis-Hastings Algorithm</h3>
+<p>A state space of the Markov Chain in this application is represented by a unique sequence of each of the 26 letters. For example, if the original text was encoded with a key where only the first two letters were swapped, that would be represented by the state BACDEF…XYZ. Since the order of substitution for encrypted text is unknown, the correct decryption key is one of 26! possible states. Iterating through each of the 26! possibilities is infeasible, and that is where the MCMC approach comes to the rescue.</p>
+<p>The Metropolis-Hastings Algorithm is a technique for randomly sampling from the possible state spaces in such a way as to efficiently converge to the correct decryption. As described in Chen, for each successive pair of characters <span class="math inline">\(\beta_{1}\)</span>, <span class="math inline">\(\beta_{2}\)</span>, the expression <span class="math inline">\(r(\beta_{1},\beta_{2})\)</span> records the number of times each particular pair of characters appears in the reference text <em>War and Peace</em>. Similarly, <span class="math inline">\(f_{x}(\beta_{1},\beta_{2})\)</span> records the number of times each two-letter pair occurs in the target text after it was decrypted with key <em>x</em> from the state space. For a particular decryption key <em>x</em>, its score function is as follows:<span class="citation" data-cites="chen2011">(<a href="#ref-chen2011" role="doc-biblioref">Chen and Rosenthal 2011</a>)</span></p>
+<p><span class="math display">\[
+\pi(x)=\prod_{\beta_{1},\beta_{2}}r(\beta_{1},\beta_{2})^{f_{x}(\beta_{1},\beta_{2})}
+\]</span></p>
+<p>When I implemented this expression in Python, there were significant numerical errors due to multiplying large numbers. Therefore, I modified the expression so that the target text letter count is multiplied by the logarithm of the reference text count. I then added the products of all of the two-letter pairs since adding logarithms is equivalent to successive multiplication. For example, if the number of times AB appeared in the decrypted text was 12 and the number of times AB appeared in <em>War and Peace</em> was 3,437, then 12 was multiplied by log(3437). This product was added to the product of every other possible two-letter pair for a total score for that particular decryption key. This logic is implemented in the following code where in the last line, <code>key_score</code> represents the score for the decryption key, <code>v</code> represents a two-letter count in the target text, and <code>trans_counts[k]</code> represents the same two-letter pair count in <em>War and Peace</em>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k,v <span class="kw">in</span> target_counts.items():</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="kw">in</span> trans_counts:</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>            key_score <span class="op">+=</span> v <span class="op">*</span> math.log(trans_counts[k])</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>After calculating a score for the decryption key, a proposal key is generated by randomly choosing two letters from the key and swapping their positions. So if A and G are randomly chosen and A mapped to S and G mapped to Y, then in the proposed key, A maps to Y and G maps to S. A score for the proposed key is calculated and compared to the current key. If the proposed key’s score is greater than the current key’s score, the score ratio is greater than one, and it produces a decrypted text with letter transitions that more closely match the reference text, so it is accepted as the new decryption key. If the score ratio is less than one, then the proposed key is accepted with a probability equal to the score ratio. This allows lower probability keys to be explored during the random walk. In Python, it is implemented by drawing a random number from a uniform distribution ranging from 0 to 1 and comparing it to the score ratio. The Python implementation of this logic is below. Note that the exponent of the difference of the scores is required to negate the logarithm of the two-letter count described earlier.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a proposed decryption key and get scores</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>proposed_decrypt_key <span class="op">=</span> get_proposed_key(current_decrypt_key)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>current_score <span class="op">=</span> score(current_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>proposed_score <span class="op">=</span> score(proposed_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#calculate the acceptance probability</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>ap <span class="op">=</span> <span class="bu">min</span>(<span class="dv">1</span>, math.exp(proposed_score <span class="op">-</span> current_score))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a random number between 0 and 1</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>runif <span class="op">=</span> np.random.uniform()</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#accept the proposed key if the random number is less than the acceptance probability</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> runif <span class="op">&lt;=</span> ap: accept_proposed_key <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>: accept_proposed_key <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> accept_proposed_key: current_decrypt_key <span class="op">=</span> proposed_decrypt_key</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>In this section, I will test the algorithm on two different short texts, which I refer to as the target texts, using <em>War and Peace</em> as the reference text for letter transition probabilities. The first target text is taken from a passage in the movie <em>Strange Brew</em>. I chose this text to represent typical spoken English, and it contains 12 sentences, 202 words, and 944 characters. I will repeat the test on the movie passage using increasingly shorter segments of the passage to determine the approximate minimum length of text needed. I will also test the algorithm on the movie massage by using a shorter reference text <em>Alice’s Adventures in Wonderland</em>. The other target text is a portion of the decrypted text obtained from the prison psychologist. Because this text contains slang, mis-spellings, and several words in Spanish, it should provide a challenge to the decryption algorithm. For this target text, I will again use <em>War and Peace</em> as the reference text.</p>
+<div class="cell" data-execution_count="1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="2">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_trans_counts(plaintext):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''takes .txt file and creates a dictionary with two-letter combinations as keys and their counts as values.</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">    returns a dictionary of the counts in the form {AB:343, AC:112, etc}'''</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    trans_counts <span class="op">=</span> {}</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(plaintext)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    wp <span class="op">=</span> []</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> f:</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        wp.append(line)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    f.close()</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> wp:</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">#convert to upper case</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        line <span class="op">=</span> <span class="bu">str</span>.upper(line)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">#remove the \n newline characters at the end of the line</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        line <span class="op">=</span> line[<span class="dv">0</span>:<span class="bu">len</span>(line)<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="co">#count the number of two letter pairs</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(line)<span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> line[i] <span class="op">+</span> line[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            <span class="co">#two consecutive letters</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (line[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>            <span class="co">#non-letter followed by a letter</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> line[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>            <span class="co">#letter followed by a non-letter</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> line[i] <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>            <span class="co">#two non-letters</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trans_counts</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> map_key(key):</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''given a encryption or decryption key, returns a dictionary where the dictionary key is the letter from the key</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co">    and the value is the letter of the alphabet it maps to in the form {A:R, B:W, C:O, etc}'''</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    alphabet <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> {}</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(key)): mapping[alphabet[i]] <span class="op">=</span> key[i]</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> apply_key(key, text):</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''encodes/decodes text given a de/encryption key (a sequence of 26 letters) and a string of text</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="co">    returns a new text (string)'''</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    mapped_text <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>    <span class="co">#convert the text to a list</span></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> <span class="bu">list</span>(text)</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">#get the mapping from map_key</span></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> map_key(key)</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="co">#apply the mapping based on the key</span></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> letter <span class="kw">in</span> text:</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>        <span class="co">#convert to upper case</span></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>        letter <span class="op">=</span> <span class="bu">str</span>.upper(letter)</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> letter <span class="kw">in</span> mapping: mapped_text <span class="op">+=</span> mapping[letter]</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: mapped_text <span class="op">+=</span> <span class="st">" "</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapped_text</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score(key, text, trans_counts):</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''calculates the score of a decryption key based on it's log-likliness to the referece text transition counts.</span></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns a score value (float)'''</span></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">#get the current mapping</span></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> map_key(key)</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>    <span class="co">#decode the text based on the mapping</span></span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>    decoded <span class="op">=</span> apply_key(key, text)</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    key_score <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>    target_counts <span class="op">=</span> {}</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">#strip the text</span></span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>    stripped_text <span class="op">=</span> decoded.strip()</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>    <span class="co">#convert the target text into a list of characters</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>    text_list <span class="op">=</span> <span class="bu">list</span>(stripped_text)</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>    <span class="co">#count the number of two letter pairs in the target text</span></span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(text_list)<span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>        twoletter_key <span class="op">=</span> text_list[i] <span class="op">+</span> text_list[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>        <span class="co">#two consecutive letters</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (text_list[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>        <span class="co">#non-letter followed by a letter</span></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> text_list[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>        <span class="co">#letter followed by a non-letter</span></span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> text_list[i] <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>        <span class="co">#two non-letters</span></span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k,v <span class="kw">in</span> target_counts.items():</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="kw">in</span> trans_counts:</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>            key_score <span class="op">+=</span> v<span class="op">*</span>math.log(trans_counts[k])</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> key_score</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_proposed_key(key):</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Takes a decryption key, randomly selects two letters, and swaps they keys for those letters. So if A mapped to X</span></span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a><span class="co">    and B mapped to Q, then A maps to Q and B to X.</span></span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns a new decryption key (string)'''</span></span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>    proposed_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>    <span class="co">#randomly select two letters to swap</span></span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>    char1, char2 <span class="op">=</span> np.random.choice(chars, size<span class="op">=</span><span class="dv">2</span>, replace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a>    <span class="co">#create a new key, swapping letters in the old key</span></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>    new_key <span class="op">=</span> <span class="bu">list</span>(key)</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(new_key)):</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> new_key[i] <span class="op">==</span> char1: index1 <span class="op">=</span> i</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> new_key[i] <span class="op">==</span> char2: index2 <span class="op">=</span> i</span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>    new_key[index1] <span class="op">=</span> char2</span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>    new_key[index2] <span class="op">=</span> char1</span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> letter <span class="kw">in</span> new_key:</span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>        proposed_key <span class="op">+=</span> letter</span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> proposed_key</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">### MAIN PROGRAM</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#get letter transition counts for reference text</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>trans_counts <span class="op">=</span> get_trans_counts(<span class="st">'wp_full.txt'</span>)  <span class="co"># war and peace</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>target_text <span class="op">=</span> <span class="st">"to bat—rb. con todo mi respeto. i was sitting down playing chess with </span><span class="ch">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">danny de emf and boxer de el centro was sitting next to us. boxer was </span><span class="ch">\</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">making loud and loud voices so i tell him por favor can you kick back </span><span class="ch">\</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">homie cause im playing chess. a minute later the vato starts back up again </span><span class="ch">\</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">so this time i tell him con respecto homie can you kick back. the vato </span><span class="ch">\</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">stop for a minute and he starts up again so i tell him check this out shut </span><span class="ch">\</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="st">the fuck up cause im tired of your voice and if you got a problem with it </span><span class="ch">\</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="st">we can go to celda and handle it. i really felt disrespected thats why i </span><span class="ch">\</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="st">told him. anyways after i tell him that the next thing I know that vato </span><span class="ch">\</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="st">slashes me and leaves. by the time i figure im hit i try to get away but </span><span class="ch">\</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="st">the c.o. is walking in my direction and he gets me right by a celda. so i </span><span class="ch">\</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="st">go to the hole. when im in the hole my home boys hit boxer so now b is </span><span class="ch">\</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="st">also in the hole. while im in the hole im getting schoold wrong. "</span> </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>alphabet <span class="op">=</span> <span class="st">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a random encryption key</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>encrypt_list <span class="op">=</span> <span class="bu">list</span>(np.random.choice(chars, size<span class="op">=</span><span class="dv">26</span>, replace<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>encrypt_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> encrypt_list:</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    encrypt_key <span class="op">=</span> encrypt_key <span class="op">+</span> i</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>encrypt_test <span class="op">=</span><span class="st">"abcdefghijklmnopqrstuvwxyz"</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>test_key <span class="op">=</span> apply_key(encrypt_key, encrypt_test)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co">#encrypt the target text</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>encoded_text <span class="op">=</span> apply_key(encrypt_key, target_text)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a random decryption key</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>decrypt_list <span class="op">=</span> <span class="bu">list</span>(np.random.choice(chars, size<span class="op">=</span><span class="dv">26</span>, replace<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>current_decrypt_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> decrypt_list:</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    current_decrypt_key <span class="op">=</span> current_decrypt_key <span class="op">+</span> i</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="co">#Results!</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Unencrypted text:</span><span class="ch">\n</span><span class="st">'</span>, target_text)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">Encrypted text:</span><span class="ch">\n</span><span class="st">'</span>, encoded_text)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> iters <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">20001</span>):</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    proposed_decrypt_key <span class="op">=</span> get_proposed_key(current_decrypt_key)</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    current_score <span class="op">=</span> score(current_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    proposed_score <span class="op">=</span> score(proposed_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">#calculate the acceptance probability based on the ratio of the proposed and current scores</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    ap <span class="op">=</span> <span class="bu">min</span>(<span class="dv">1</span>, math.exp(proposed_score <span class="op">-</span> current_score))</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">#generate a random number between 0 and 1</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    runif <span class="op">=</span> np.random.uniform()</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">#accept the proposed key only if the random number is less than the probability of acceptance</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> runif <span class="op">&gt;=</span> ap: accept_proposed_key <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: accept_proposed_key <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> accept_proposed_key: current_decrypt_key <span class="op">=</span> proposed_decrypt_key</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    <span class="co">#print every 1000th iteration</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> iters<span class="op">%</span><span class="dv">500</span> <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Iter:'</span>, iters, apply_key(current_decrypt_key, encoded_text)[<span class="dv">0</span>:<span class="dv">99</span>])</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>        test <span class="op">=</span> apply_key(encrypt_key, alphabet)</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>        check <span class="op">=</span> apply_key(current_decrypt_key, test)</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>        correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(alphabet)):</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> alphabet[i] <span class="op">==</span> check[i]: correct <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>        <span class="co">#print('Number of correctly decoded letters:', correct)</span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">Decrypted text:'</span>)</span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(apply_key(current_decrypt_key, encoded_text))</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a><span class="co">#get number of correct letters</span></span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> apply_key(encrypt_key, alphabet)</span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>check <span class="op">=</span> apply_key(current_decrypt_key, test)</span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(alphabet)):</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> alphabet[i] <span class="op">==</span> check[i]: correct <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a><span class="co">#print(alphabet)</span></span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a><span class="co">#print(check)</span></span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Number of correctly decoded letters:'</span>, correct)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Unencrypted text:
+ to bat—rb. con todo mi respeto. i was sitting down playing chess with danny de emf and boxer de el centro was sitting next to us. boxer was making loud and loud voices so i tell him por favor can you kick back homie cause im playing chess. a minute later the vato starts back up again so this time i tell him con respecto homie can you kick back. the vato stop for a minute and he starts up again so i tell him check this out shut the fuck up cause im tired of your voice and if you got a problem with it we can go to celda and handle it. i really felt disrespected thats why i told him. anyways after i tell him that the next thing I know that vato slashes me and leaves. by the time i figure im hit i try to get away but the c.o. is walking in my direction and he gets me right by a celda. so i go to the hole. when im in the hole my home boys hit boxer so now b is also in the hole. while im in the hole im getting schoold wrong. 
+
+Encrypted text:
+ IV ACI MA  TVJ IVYV RU MLDXLIV  U PCD DUIIUJS YVPJ XZCHUJS TOLDD PUIO YCJJH YL LRB CJY AVELM YL LZ TLJIMV PCD DUIIUJS JLEI IV QD  AVELM PCD RCNUJS ZVQY CJY ZVQY FVUTLD DV U ILZZ OUR XVM BCFVM TCJ HVQ NUTN ACTN OVRUL TCQDL UR XZCHUJS TOLDD  C RUJQIL ZCILM IOL FCIV DICMID ACTN QX CSCUJ DV IOUD IURL U ILZZ OUR TVJ MLDXLTIV OVRUL TCJ HVQ NUTN ACTN  IOL FCIV DIVX BVM C RUJQIL CJY OL DICMID QX CSCUJ DV U ILZZ OUR TOLTN IOUD VQI DOQI IOL BQTN QX TCQDL UR IUMLY VB HVQM FVUTL CJY UB HVQ SVI C XMVAZLR PUIO UI PL TCJ SV IV TLZYC CJY OCJYZL UI  U MLCZZH BLZI YUDMLDXLTILY IOCID POH U IVZY OUR  CJHPCHD CBILM U ILZZ OUR IOCI IOL JLEI IOUJS U NJVP IOCI FCIV DZCDOLD RL CJY ZLCFLD  AH IOL IURL U BUSQML UR OUI U IMH IV SLI CPCH AQI IOL T V  UD PCZNUJS UJ RH YUMLTIUVJ CJY OL SLID RL MUSOI AH C TLZYC  DV U SV IV IOL OVZL  POLJ UR UJ IOL OVZL RH OVRL AVHD OUI AVELM DV JVP A UD CZDV UJ IOL OVZL  POUZL UR UJ IOL OVZL UR SLIIUJS DTOVVZY PMVJS  
+
+
+Iter: 0 ND CBN GC  KDY NDED LM GXJSXND  M OBJ JMNNMYH EDOY SPBFMYH KAXJJ OMNA EBYYF EX XLR BYE CDTXG EX XP </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 500 LI WUL MW  HIR LIDI FO MESVELI  O CUS SOLLORG DICR VNUKORG HTESS COLT DURRK DE EFP URD WIZEM DE EN </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 1000 TA WUT SW  PAN TADA FO SELVETA  O CUL LOTTONG DACN VRUMONG PHELL COTH DUNNM DE EFK UND WAXES DE ER </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 1500 TO WUT SW  CON TODO FA SELVETO  A PUL LATTANG DOPN VRUMANG CHELL PATH DUNNM DE EFK UND WOXES DE ER </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 2000 TO WIT MW  CON TODO RA MESPETO  A KIS SATTANG DOKN PLIFANG CHESS KATH DINNF DE ERB IND WOXEM DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 2500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAKING CHESS WITH DANNK DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 3000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 3500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 4000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 4500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 5000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 5500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 6000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 6500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 7000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 7500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 8000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 8500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 9000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 9500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 10000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 10500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 11000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 11500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 12000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 12500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 13000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 13500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 14000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 14500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 15000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 15500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 16000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 16500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 17000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 17500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 18000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 18500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 19000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 19500 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter: 20000 TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL 
+
+Decrypted text:
+TO BAT RB  CON TODO MI RESPETO  I WAS SITTING DOWN PLAYING CHESS WITH DANNY DE EMF AND BOXER DE EL CENTRO WAS SITTING NEXT TO US  BOXER WAS MAKING LOUD AND LOUD VOICES SO I TELL HIM POR FAVOR CAN YOU KICK BACK HOMIE CAUSE IM PLAYING CHESS  A MINUTE LATER THE VATO STARTS BACK UP AGAIN SO THIS TIME I TELL HIM CON RESPECTO HOMIE CAN YOU KICK BACK  THE VATO STOP FOR A MINUTE AND HE STARTS UP AGAIN SO I TELL HIM CHECK THIS OUT SHUT THE FUCK UP CAUSE IM TIRED OF YOUR VOICE AND IF YOU GOT A PROBLEM WITH IT WE CAN GO TO CELDA AND HANDLE IT  I REALLY FELT DISRESPECTED THATS WHY I TOLD HIM  ANYWAYS AFTER I TELL HIM THAT THE NEXT THING I KNOW THAT VATO SLASHES ME AND LEAVES  BY THE TIME I FIGURE IM HIT I TRY TO GET AWAY BUT THE C O  IS WALKING IN MY DIRECTION AND HE GETS ME RIGHT BY A CELDA  SO I GO TO THE HOLE  WHEN IM IN THE HOLE MY HOME BOYS HIT BOXER SO NOW B IS ALSO IN THE HOLE  WHILE IM IN THE HOLE IM GETTING SCHOOLD WRONG  
+
+
+Number of correctly decoded letters: 23</code></pre>
+</div>
+</div>
+<p>Not bad! I think it’s fascinating that the algorithm was also successful on text that contained slang, mis-spellings, and occasional Spanish as in the above example.</p>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-chen2011" class="csl-entry" role="doc-biblioentry">
+Chen, Jian, and Jeffrey S. Rosenthal. 2011. <span>“Decrypting Classical Cipher Text Using Markov Chain Monte Carlo.”</span> <em>Statistics and Computing</em> 22 (2): 397–413. <a href="https://doi.org/10.1007/s11222-011-9232-5">https://doi.org/10.1007/s11222-011-9232-5</a>.
+</div>
+<div id="ref-diaconis2008" class="csl-entry" role="doc-biblioentry">
+Diaconis, Persi. 2008. <span>“The Markov Chain Monte Carlo Revolution.”</span> <em>Bulletin of the American Mathematical Society</em> 46 (2): 179–205. <a href="https://doi.org/10.1090/s0273-0979-08-01238-x">https://doi.org/10.1090/s0273-0979-08-01238-x</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'alternate';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb47" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Substitution Cyphers"</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "Decrypt a substitution cypher using the Markov Chain Monte Carlo method."</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "John King"</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "3/30/2020"</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: true</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-copy: true</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a><span class="co">  - python</span></span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a><span class="co">  - cryptology</span></span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a><span class="co">  - stochastic methods</span></span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> "teaser.png"</span></span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> references.bib</span></span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a>Stanford professor Persi Diaconis described an event when a psychologist from the California prison system brought encoded messages obtained from inmates to the Statistics Department's drop-in consulting service and asked if the messages could be decrypted<span class="co">[</span><span class="ot">@diaconis2008</span><span class="co">]</span>. The problem was tackled by Stanford student Marc Coram, who guessed that the message was encoded using a simple substitution cipher. Using the Markov Chain Monte Carlo (MCMC) method, Coram's algorithm was able to correctly decipher the message without enumerating through all of the possible letter combinations. This paper presents an algorithm in Python that replicates Coram's approach and evaluates some minimum conditions required for the technique to be successful. The Python code used for this project is included as an appendix to this report.</span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cryptography Background</span></span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a>Text encryption is the process of turning intelligible text into unintelligible text, and text decryption is the opposite process. A cipher is a pair of algorithms the create the encrypted and decrypted texts. The operation of the cipher is controlled by the both the algorithm and a key. The cipher used in the inmates' messages substituted a different symbol for each letter of the alphabet, punctuation, and spaces between words. Instead of using symbols in this project, letters were randomly chosen to substitute for other letters in a string of text.</span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Monte Carlo Markov Chain Method</span></span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true" tabindex="-1"></a>When faced with the challenge of deciphering text encoded with a substitution cipher, an initial approach might be to attempt to match letter frequencies in the encoded text with average letter frequencies for the English language. Chen tried this approach and found that it had limited success, correctly decoding just 16 out of 26 letters. Because of this, Coram instead used two letter transition frequencies.</span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true" tabindex="-1"></a><span class="fu">### Two Letter Transitions</span></span>
+<span id="cb47-34"><a href="#cb47-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-35"><a href="#cb47-35" aria-hidden="true" tabindex="-1"></a>For this project, I obtained a text file of *War and Peace* from www.textfiles.com and counted the number of times each of the two letter combinations appeared. All numbers, punctuation, and spaces were combined into a single category of a non-letter. I used the space character to represent these non-letters in order to have the resulting decrypted text be more readable. I chose *War and Peace* as the reference text because of its length. A longer text produces a larger sample size for calculating statistics on two-letter frequencies. Additionally, a novel is a better choice than a dictionary of the English language because the resulting two-letter frequencies will represent what would be expected in natural language. For example, since the word "the" is the most common word in written English, the two-letter pairs of TH and HE should be relatively frequent.</span>
+<span id="cb47-36"><a href="#cb47-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-37"><a href="#cb47-37" aria-hidden="true" tabindex="-1"></a><span class="al">![](teaser.png)</span></span>
+<span id="cb47-38"><a href="#cb47-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-39"><a href="#cb47-39" aria-hidden="true" tabindex="-1"></a>This is a plot of the normalized transition probabilities that I used to check the accuracy of the Python function. The QU transition stands out, and the TH and HE frequencies are high as expected from the common use of the word "the". T is the most common letter to start a word, and D and Y are the most common letters to end a word. These results match expectations, so the function appears to be correct.</span>
+<span id="cb47-40"><a href="#cb47-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-41"><a href="#cb47-41" aria-hidden="true" tabindex="-1"></a><span class="fu">### Metropolis-Hastings Algorithm</span></span>
+<span id="cb47-42"><a href="#cb47-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-43"><a href="#cb47-43" aria-hidden="true" tabindex="-1"></a>A state space of the Markov Chain in this application is represented by a unique sequence of each of the 26 letters. For example, if the original text was encoded with a key where only the first two letters were swapped, that would be represented by the state BACDEF...XYZ. Since the order of substitution for encrypted text is unknown, the correct decryption key is one of 26! possible states. Iterating through each of the 26! possibilities is infeasible, and that is where the MCMC approach comes to the rescue.</span>
+<span id="cb47-44"><a href="#cb47-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-45"><a href="#cb47-45" aria-hidden="true" tabindex="-1"></a>The Metropolis-Hastings Algorithm is a technique for randomly sampling from the possible state spaces in such a way as to efficiently converge to the correct decryption. As described in Chen, for each successive pair of characters $\beta_{1}$, $\beta_{2}$, the expression $r(\beta_{1},\beta_{2})$ records the number of times each particular pair of characters appears in the reference text *War and Peace*. Similarly, $f_{x}(\beta_{1},\beta_{2})$ records the number of times each two-letter pair occurs in the target text after it was decrypted with key *x* from the state space. For a particular decryption key *x*, its score function is as follows:<span class="co">[</span><span class="ot">@chen2011</span><span class="co">]</span></span>
+<span id="cb47-46"><a href="#cb47-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-47"><a href="#cb47-47" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb47-48"><a href="#cb47-48" aria-hidden="true" tabindex="-1"></a>\pi(x)=\prod_{\beta_{1},\beta_{2}}r(\beta_{1},\beta_{2})^{f_{x}(\beta_{1},\beta_{2})}</span>
+<span id="cb47-49"><a href="#cb47-49" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb47-50"><a href="#cb47-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-51"><a href="#cb47-51" aria-hidden="true" tabindex="-1"></a>When I implemented this expression in Python, there were significant numerical errors due to multiplying large numbers. Therefore, I modified the expression so that the target text letter count is multiplied by the logarithm of the reference text count. I then added the products of all of the two-letter pairs since adding logarithms is equivalent to successive multiplication. For example, if the number of times AB appeared in the decrypted text was 12 and the number of times AB appeared in *War and Peace* was 3,437, then 12 was multiplied by log(3437). This product was added to the product of every other possible two-letter pair for a total score for that particular decryption key. This logic is implemented in the following code where in the last line, `key_score` represents the score for the decryption key, `v` represents a two-letter count in the target text, and `trans_counts[k]` represents the same two-letter pair count in *War and Peace*.</span>
+<span id="cb47-52"><a href="#cb47-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-53"><a href="#cb47-53" aria-hidden="true" tabindex="-1"></a><span class="in">``` {{python}}</span></span>
+<span id="cb47-54"><a href="#cb47-54" aria-hidden="true" tabindex="-1"></a><span class="in">for k,v in target_counts.items():</span></span>
+<span id="cb47-55"><a href="#cb47-55" aria-hidden="true" tabindex="-1"></a><span class="in">        if k in trans_counts:</span></span>
+<span id="cb47-56"><a href="#cb47-56" aria-hidden="true" tabindex="-1"></a><span class="in">            key_score += v * math.log(trans_counts[k])</span></span>
+<span id="cb47-57"><a href="#cb47-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb47-58"><a href="#cb47-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-59"><a href="#cb47-59" aria-hidden="true" tabindex="-1"></a>After calculating a score for the decryption key, a proposal key is generated by randomly choosing two letters from the key and swapping their positions. So if A and G are randomly chosen and A mapped to S and G mapped to Y, then in the proposed key, A maps to Y and G maps to S. A score for the proposed key is calculated and compared to the current key. If the proposed key's score is greater than the current key's score, the score ratio is greater than one, and it produces a decrypted text with letter transitions that more closely match the reference text, so it is accepted as the new decryption key. If the score ratio is less than one, then the proposed key is accepted with a probability equal to the score ratio. This allows lower probability keys to be explored during the random walk. In Python, it is implemented by drawing a random number from a uniform distribution ranging from 0 to 1 and comparing it to the score ratio. The Python implementation of this logic is below. Note that the exponent of the difference of the scores is required to negate the logarithm of the two-letter count described earlier.</span>
+<span id="cb47-60"><a href="#cb47-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-61"><a href="#cb47-61" aria-hidden="true" tabindex="-1"></a><span class="in">``` {{python}}</span></span>
+<span id="cb47-62"><a href="#cb47-62" aria-hidden="true" tabindex="-1"></a><span class="in">#generate a proposed decryption key and get scores</span></span>
+<span id="cb47-63"><a href="#cb47-63" aria-hidden="true" tabindex="-1"></a><span class="in">proposed_decrypt_key = get_proposed_key(current_decrypt_key)</span></span>
+<span id="cb47-64"><a href="#cb47-64" aria-hidden="true" tabindex="-1"></a><span class="in">current_score = score(current_decrypt_key, encoded_text, trans_counts)</span></span>
+<span id="cb47-65"><a href="#cb47-65" aria-hidden="true" tabindex="-1"></a><span class="in">proposed_score = score(proposed_decrypt_key, encoded_text, trans_counts)</span></span>
+<span id="cb47-66"><a href="#cb47-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-67"><a href="#cb47-67" aria-hidden="true" tabindex="-1"></a><span class="in">#calculate the acceptance probability</span></span>
+<span id="cb47-68"><a href="#cb47-68" aria-hidden="true" tabindex="-1"></a><span class="in">ap = min(1, math.exp(proposed_score - current_score))</span></span>
+<span id="cb47-69"><a href="#cb47-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-70"><a href="#cb47-70" aria-hidden="true" tabindex="-1"></a><span class="in">#generate a random number between 0 and 1</span></span>
+<span id="cb47-71"><a href="#cb47-71" aria-hidden="true" tabindex="-1"></a><span class="in">runif = np.random.uniform()</span></span>
+<span id="cb47-72"><a href="#cb47-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-73"><a href="#cb47-73" aria-hidden="true" tabindex="-1"></a><span class="in">#accept the proposed key if the random number is less than the acceptance probability</span></span>
+<span id="cb47-74"><a href="#cb47-74" aria-hidden="true" tabindex="-1"></a><span class="in">if runif &lt;= ap: accept_proposed_key = True</span></span>
+<span id="cb47-75"><a href="#cb47-75" aria-hidden="true" tabindex="-1"></a><span class="in">else: accept_proposed_key = False</span></span>
+<span id="cb47-76"><a href="#cb47-76" aria-hidden="true" tabindex="-1"></a><span class="in">if accept_proposed_key: current_decrypt_key = proposed_decrypt_key</span></span>
+<span id="cb47-77"><a href="#cb47-77" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb47-78"><a href="#cb47-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-79"><a href="#cb47-79" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
+<span id="cb47-80"><a href="#cb47-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-81"><a href="#cb47-81" aria-hidden="true" tabindex="-1"></a>In this section, I will test the algorithm on two different short texts, which I refer to as the target texts, using *War and Peace* as the reference text for letter transition probabilities. The first target text is taken from a passage in the movie *Strange Brew*. I chose this text to represent typical spoken English, and it contains 12 sentences, 202 words, and 944 characters. I will repeat the test on the movie passage using increasingly shorter segments of the passage to determine the approximate minimum length of text needed. I will also test the algorithm on the movie massage by using a shorter reference text *Alice's Adventures in Wonderland*. The other target text is a portion of the decrypted text obtained from the prison psychologist. Because this text contains slang, mis-spellings, and several words in Spanish, it should provide a challenge to the decryption algorithm. For this target text, I will again use *War and Peace* as the reference text.</span>
+<span id="cb47-82"><a href="#cb47-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-85"><a href="#cb47-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb47-86"><a href="#cb47-86" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb47-87"><a href="#cb47-87" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
+<span id="cb47-88"><a href="#cb47-88" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb47-89"><a href="#cb47-89" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb47-90"><a href="#cb47-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-93"><a href="#cb47-93" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb47-94"><a href="#cb47-94" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_trans_counts(plaintext):</span>
+<span id="cb47-95"><a href="#cb47-95" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''takes .txt file and creates a dictionary with two-letter combinations as keys and their counts as values.</span></span>
+<span id="cb47-96"><a href="#cb47-96" aria-hidden="true" tabindex="-1"></a><span class="co">    returns a dictionary of the counts in the form {AB:343, AC:112, etc}'''</span></span>
+<span id="cb47-97"><a href="#cb47-97" aria-hidden="true" tabindex="-1"></a>    trans_counts <span class="op">=</span> {}</span>
+<span id="cb47-98"><a href="#cb47-98" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb47-99"><a href="#cb47-99" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(plaintext)</span>
+<span id="cb47-100"><a href="#cb47-100" aria-hidden="true" tabindex="-1"></a>    wp <span class="op">=</span> []</span>
+<span id="cb47-101"><a href="#cb47-101" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> f:</span>
+<span id="cb47-102"><a href="#cb47-102" aria-hidden="true" tabindex="-1"></a>        wp.append(line)</span>
+<span id="cb47-103"><a href="#cb47-103" aria-hidden="true" tabindex="-1"></a>    f.close()</span>
+<span id="cb47-104"><a href="#cb47-104" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> wp:</span>
+<span id="cb47-105"><a href="#cb47-105" aria-hidden="true" tabindex="-1"></a>        <span class="co">#convert to upper case</span></span>
+<span id="cb47-106"><a href="#cb47-106" aria-hidden="true" tabindex="-1"></a>        line <span class="op">=</span> <span class="bu">str</span>.upper(line)</span>
+<span id="cb47-107"><a href="#cb47-107" aria-hidden="true" tabindex="-1"></a>        <span class="co">#remove the \n newline characters at the end of the line</span></span>
+<span id="cb47-108"><a href="#cb47-108" aria-hidden="true" tabindex="-1"></a>        line <span class="op">=</span> line[<span class="dv">0</span>:<span class="bu">len</span>(line)<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb47-109"><a href="#cb47-109" aria-hidden="true" tabindex="-1"></a>        <span class="co">#count the number of two letter pairs</span></span>
+<span id="cb47-110"><a href="#cb47-110" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(line)<span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb47-111"><a href="#cb47-111" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> line[i] <span class="op">+</span> line[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb47-112"><a href="#cb47-112" aria-hidden="true" tabindex="-1"></a>            <span class="co">#two consecutive letters</span></span>
+<span id="cb47-113"><a href="#cb47-113" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (line[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb47-114"><a href="#cb47-114" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-115"><a href="#cb47-115" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-116"><a href="#cb47-116" aria-hidden="true" tabindex="-1"></a>            <span class="co">#non-letter followed by a letter</span></span>
+<span id="cb47-117"><a href="#cb47-117" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb47-118"><a href="#cb47-118" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> line[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb47-119"><a href="#cb47-119" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-120"><a href="#cb47-120" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-121"><a href="#cb47-121" aria-hidden="true" tabindex="-1"></a>            <span class="co">#letter followed by a non-letter</span></span>
+<span id="cb47-122"><a href="#cb47-122" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb47-123"><a href="#cb47-123" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> line[i] <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb47-124"><a href="#cb47-124" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-125"><a href="#cb47-125" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-126"><a href="#cb47-126" aria-hidden="true" tabindex="-1"></a>            <span class="co">#two non-letters</span></span>
+<span id="cb47-127"><a href="#cb47-127" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> (line[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (line[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb47-128"><a href="#cb47-128" aria-hidden="true" tabindex="-1"></a>                twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb47-129"><a href="#cb47-129" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> trans_counts: trans_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-130"><a href="#cb47-130" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>: trans_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-131"><a href="#cb47-131" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> trans_counts</span>
+<span id="cb47-132"><a href="#cb47-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-133"><a href="#cb47-133" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> map_key(key):</span>
+<span id="cb47-134"><a href="#cb47-134" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''given a encryption or decryption key, returns a dictionary where the dictionary key is the letter from the key</span></span>
+<span id="cb47-135"><a href="#cb47-135" aria-hidden="true" tabindex="-1"></a><span class="co">    and the value is the letter of the alphabet it maps to in the form {A:R, B:W, C:O, etc}'''</span></span>
+<span id="cb47-136"><a href="#cb47-136" aria-hidden="true" tabindex="-1"></a>    alphabet <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb47-137"><a href="#cb47-137" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> {}</span>
+<span id="cb47-138"><a href="#cb47-138" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(key)): mapping[alphabet[i]] <span class="op">=</span> key[i]</span>
+<span id="cb47-139"><a href="#cb47-139" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping</span>
+<span id="cb47-140"><a href="#cb47-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-141"><a href="#cb47-141" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> apply_key(key, text):</span>
+<span id="cb47-142"><a href="#cb47-142" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''encodes/decodes text given a de/encryption key (a sequence of 26 letters) and a string of text</span></span>
+<span id="cb47-143"><a href="#cb47-143" aria-hidden="true" tabindex="-1"></a><span class="co">    returns a new text (string)'''</span></span>
+<span id="cb47-144"><a href="#cb47-144" aria-hidden="true" tabindex="-1"></a>    mapped_text <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb47-145"><a href="#cb47-145" aria-hidden="true" tabindex="-1"></a>    <span class="co">#convert the text to a list</span></span>
+<span id="cb47-146"><a href="#cb47-146" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> <span class="bu">list</span>(text)</span>
+<span id="cb47-147"><a href="#cb47-147" aria-hidden="true" tabindex="-1"></a>    <span class="co">#get the mapping from map_key</span></span>
+<span id="cb47-148"><a href="#cb47-148" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> map_key(key)</span>
+<span id="cb47-149"><a href="#cb47-149" aria-hidden="true" tabindex="-1"></a>    <span class="co">#apply the mapping based on the key</span></span>
+<span id="cb47-150"><a href="#cb47-150" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> letter <span class="kw">in</span> text:</span>
+<span id="cb47-151"><a href="#cb47-151" aria-hidden="true" tabindex="-1"></a>        <span class="co">#convert to upper case</span></span>
+<span id="cb47-152"><a href="#cb47-152" aria-hidden="true" tabindex="-1"></a>        letter <span class="op">=</span> <span class="bu">str</span>.upper(letter)</span>
+<span id="cb47-153"><a href="#cb47-153" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> letter <span class="kw">in</span> mapping: mapped_text <span class="op">+=</span> mapping[letter]</span>
+<span id="cb47-154"><a href="#cb47-154" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: mapped_text <span class="op">+=</span> <span class="st">" "</span></span>
+<span id="cb47-155"><a href="#cb47-155" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapped_text</span>
+<span id="cb47-156"><a href="#cb47-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-157"><a href="#cb47-157" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score(key, text, trans_counts):</span>
+<span id="cb47-158"><a href="#cb47-158" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''calculates the score of a decryption key based on it's log-likliness to the referece text transition counts.</span></span>
+<span id="cb47-159"><a href="#cb47-159" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns a score value (float)'''</span></span>
+<span id="cb47-160"><a href="#cb47-160" aria-hidden="true" tabindex="-1"></a>    <span class="co">#get the current mapping</span></span>
+<span id="cb47-161"><a href="#cb47-161" aria-hidden="true" tabindex="-1"></a>    mapping <span class="op">=</span> map_key(key)</span>
+<span id="cb47-162"><a href="#cb47-162" aria-hidden="true" tabindex="-1"></a>    <span class="co">#decode the text based on the mapping</span></span>
+<span id="cb47-163"><a href="#cb47-163" aria-hidden="true" tabindex="-1"></a>    decoded <span class="op">=</span> apply_key(key, text)</span>
+<span id="cb47-164"><a href="#cb47-164" aria-hidden="true" tabindex="-1"></a>    key_score <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb47-165"><a href="#cb47-165" aria-hidden="true" tabindex="-1"></a>    target_counts <span class="op">=</span> {}</span>
+<span id="cb47-166"><a href="#cb47-166" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb47-167"><a href="#cb47-167" aria-hidden="true" tabindex="-1"></a>    <span class="co">#strip the text</span></span>
+<span id="cb47-168"><a href="#cb47-168" aria-hidden="true" tabindex="-1"></a>    stripped_text <span class="op">=</span> decoded.strip()</span>
+<span id="cb47-169"><a href="#cb47-169" aria-hidden="true" tabindex="-1"></a>    <span class="co">#convert the target text into a list of characters</span></span>
+<span id="cb47-170"><a href="#cb47-170" aria-hidden="true" tabindex="-1"></a>    text_list <span class="op">=</span> <span class="bu">list</span>(stripped_text)</span>
+<span id="cb47-171"><a href="#cb47-171" aria-hidden="true" tabindex="-1"></a>    <span class="co">#count the number of two letter pairs in the target text</span></span>
+<span id="cb47-172"><a href="#cb47-172" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(text_list)<span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb47-173"><a href="#cb47-173" aria-hidden="true" tabindex="-1"></a>        twoletter_key <span class="op">=</span> text_list[i] <span class="op">+</span> text_list[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb47-174"><a href="#cb47-174" aria-hidden="true" tabindex="-1"></a>        <span class="co">#two consecutive letters</span></span>
+<span id="cb47-175"><a href="#cb47-175" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (text_list[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb47-176"><a href="#cb47-176" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-177"><a href="#cb47-177" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-178"><a href="#cb47-178" aria-hidden="true" tabindex="-1"></a>        <span class="co">#non-letter followed by a letter</span></span>
+<span id="cb47-179"><a href="#cb47-179" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">in</span> chars):</span>
+<span id="cb47-180"><a href="#cb47-180" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> text_list[i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb47-181"><a href="#cb47-181" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-182"><a href="#cb47-182" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-183"><a href="#cb47-183" aria-hidden="true" tabindex="-1"></a>        <span class="co">#letter followed by a non-letter</span></span>
+<span id="cb47-184"><a href="#cb47-184" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb47-185"><a href="#cb47-185" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> text_list[i] <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb47-186"><a href="#cb47-186" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-187"><a href="#cb47-187" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-188"><a href="#cb47-188" aria-hidden="true" tabindex="-1"></a>        <span class="co">#two non-letters</span></span>
+<span id="cb47-189"><a href="#cb47-189" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (text_list[i] <span class="kw">not</span> <span class="kw">in</span> chars) <span class="op">&amp;</span> (text_list[i<span class="op">+</span><span class="dv">1</span>] <span class="kw">not</span> <span class="kw">in</span> chars):</span>
+<span id="cb47-190"><a href="#cb47-190" aria-hidden="true" tabindex="-1"></a>            twoletter_key <span class="op">=</span> <span class="st">" "</span> <span class="op">+</span> <span class="st">" "</span></span>
+<span id="cb47-191"><a href="#cb47-191" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> twoletter_key <span class="kw">not</span> <span class="kw">in</span> target_counts: target_counts[twoletter_key] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb47-192"><a href="#cb47-192" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>: target_counts[twoletter_key] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-193"><a href="#cb47-193" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k,v <span class="kw">in</span> target_counts.items():</span>
+<span id="cb47-194"><a href="#cb47-194" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="kw">in</span> trans_counts:</span>
+<span id="cb47-195"><a href="#cb47-195" aria-hidden="true" tabindex="-1"></a>            key_score <span class="op">+=</span> v<span class="op">*</span>math.log(trans_counts[k])</span>
+<span id="cb47-196"><a href="#cb47-196" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> key_score</span>
+<span id="cb47-197"><a href="#cb47-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-198"><a href="#cb47-198" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_proposed_key(key):</span>
+<span id="cb47-199"><a href="#cb47-199" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Takes a decryption key, randomly selects two letters, and swaps they keys for those letters. So if A mapped to X</span></span>
+<span id="cb47-200"><a href="#cb47-200" aria-hidden="true" tabindex="-1"></a><span class="co">    and B mapped to Q, then A maps to Q and B to X.</span></span>
+<span id="cb47-201"><a href="#cb47-201" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns a new decryption key (string)'''</span></span>
+<span id="cb47-202"><a href="#cb47-202" aria-hidden="true" tabindex="-1"></a>    proposed_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb47-203"><a href="#cb47-203" aria-hidden="true" tabindex="-1"></a>    chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb47-204"><a href="#cb47-204" aria-hidden="true" tabindex="-1"></a>    <span class="co">#randomly select two letters to swap</span></span>
+<span id="cb47-205"><a href="#cb47-205" aria-hidden="true" tabindex="-1"></a>    char1, char2 <span class="op">=</span> np.random.choice(chars, size<span class="op">=</span><span class="dv">2</span>, replace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb47-206"><a href="#cb47-206" aria-hidden="true" tabindex="-1"></a>    <span class="co">#create a new key, swapping letters in the old key</span></span>
+<span id="cb47-207"><a href="#cb47-207" aria-hidden="true" tabindex="-1"></a>    new_key <span class="op">=</span> <span class="bu">list</span>(key)</span>
+<span id="cb47-208"><a href="#cb47-208" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(new_key)):</span>
+<span id="cb47-209"><a href="#cb47-209" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> new_key[i] <span class="op">==</span> char1: index1 <span class="op">=</span> i</span>
+<span id="cb47-210"><a href="#cb47-210" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> new_key[i] <span class="op">==</span> char2: index2 <span class="op">=</span> i</span>
+<span id="cb47-211"><a href="#cb47-211" aria-hidden="true" tabindex="-1"></a>    new_key[index1] <span class="op">=</span> char2</span>
+<span id="cb47-212"><a href="#cb47-212" aria-hidden="true" tabindex="-1"></a>    new_key[index2] <span class="op">=</span> char1</span>
+<span id="cb47-213"><a href="#cb47-213" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> letter <span class="kw">in</span> new_key:</span>
+<span id="cb47-214"><a href="#cb47-214" aria-hidden="true" tabindex="-1"></a>        proposed_key <span class="op">+=</span> letter</span>
+<span id="cb47-215"><a href="#cb47-215" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> proposed_key</span>
+<span id="cb47-216"><a href="#cb47-216" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb47-217"><a href="#cb47-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-220"><a href="#cb47-220" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb47-221"><a href="#cb47-221" aria-hidden="true" tabindex="-1"></a><span class="co">### MAIN PROGRAM</span></span>
+<span id="cb47-222"><a href="#cb47-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-223"><a href="#cb47-223" aria-hidden="true" tabindex="-1"></a><span class="co">#get letter transition counts for reference text</span></span>
+<span id="cb47-224"><a href="#cb47-224" aria-hidden="true" tabindex="-1"></a>trans_counts <span class="op">=</span> get_trans_counts(<span class="st">'wp_full.txt'</span>)  <span class="co"># war and peace</span></span>
+<span id="cb47-225"><a href="#cb47-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-226"><a href="#cb47-226" aria-hidden="true" tabindex="-1"></a>target_text <span class="op">=</span> <span class="st">"to bat—rb. con todo mi respeto. i was sitting down playing chess with </span><span class="ch">\</span></span>
+<span id="cb47-227"><a href="#cb47-227" aria-hidden="true" tabindex="-1"></a><span class="st">danny de emf and boxer de el centro was sitting next to us. boxer was </span><span class="ch">\</span></span>
+<span id="cb47-228"><a href="#cb47-228" aria-hidden="true" tabindex="-1"></a><span class="st">making loud and loud voices so i tell him por favor can you kick back </span><span class="ch">\</span></span>
+<span id="cb47-229"><a href="#cb47-229" aria-hidden="true" tabindex="-1"></a><span class="st">homie cause im playing chess. a minute later the vato starts back up again </span><span class="ch">\</span></span>
+<span id="cb47-230"><a href="#cb47-230" aria-hidden="true" tabindex="-1"></a><span class="st">so this time i tell him con respecto homie can you kick back. the vato </span><span class="ch">\</span></span>
+<span id="cb47-231"><a href="#cb47-231" aria-hidden="true" tabindex="-1"></a><span class="st">stop for a minute and he starts up again so i tell him check this out shut </span><span class="ch">\</span></span>
+<span id="cb47-232"><a href="#cb47-232" aria-hidden="true" tabindex="-1"></a><span class="st">the fuck up cause im tired of your voice and if you got a problem with it </span><span class="ch">\</span></span>
+<span id="cb47-233"><a href="#cb47-233" aria-hidden="true" tabindex="-1"></a><span class="st">we can go to celda and handle it. i really felt disrespected thats why i </span><span class="ch">\</span></span>
+<span id="cb47-234"><a href="#cb47-234" aria-hidden="true" tabindex="-1"></a><span class="st">told him. anyways after i tell him that the next thing I know that vato </span><span class="ch">\</span></span>
+<span id="cb47-235"><a href="#cb47-235" aria-hidden="true" tabindex="-1"></a><span class="st">slashes me and leaves. by the time i figure im hit i try to get away but </span><span class="ch">\</span></span>
+<span id="cb47-236"><a href="#cb47-236" aria-hidden="true" tabindex="-1"></a><span class="st">the c.o. is walking in my direction and he gets me right by a celda. so i </span><span class="ch">\</span></span>
+<span id="cb47-237"><a href="#cb47-237" aria-hidden="true" tabindex="-1"></a><span class="st">go to the hole. when im in the hole my home boys hit boxer so now b is </span><span class="ch">\</span></span>
+<span id="cb47-238"><a href="#cb47-238" aria-hidden="true" tabindex="-1"></a><span class="st">also in the hole. while im in the hole im getting schoold wrong. "</span> </span>
+<span id="cb47-239"><a href="#cb47-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-240"><a href="#cb47-240" aria-hidden="true" tabindex="-1"></a>alphabet <span class="op">=</span> <span class="st">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span></span>
+<span id="cb47-241"><a href="#cb47-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-242"><a href="#cb47-242" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a random encryption key</span></span>
+<span id="cb47-243"><a href="#cb47-243" aria-hidden="true" tabindex="-1"></a>chars <span class="op">=</span> [<span class="st">'A'</span>,<span class="st">'B'</span>,<span class="st">'C'</span>,<span class="st">'D'</span>,<span class="st">'E'</span>,<span class="st">'F'</span>,<span class="st">'G'</span>,<span class="st">'H'</span>,<span class="st">'I'</span>,<span class="st">'J'</span>,<span class="st">'K'</span>,<span class="st">'L'</span>,<span class="st">'M'</span>,<span class="st">'N'</span>,<span class="st">'O'</span>,<span class="st">'P'</span>,<span class="st">'Q'</span>,<span class="st">'R'</span>,<span class="st">'S'</span>,<span class="st">'T'</span>,<span class="st">'U'</span>,<span class="st">'V'</span>,<span class="st">'W'</span>,<span class="st">'X'</span>,<span class="st">'Y'</span>,<span class="st">'Z'</span>]</span>
+<span id="cb47-244"><a href="#cb47-244" aria-hidden="true" tabindex="-1"></a>encrypt_list <span class="op">=</span> <span class="bu">list</span>(np.random.choice(chars, size<span class="op">=</span><span class="dv">26</span>, replace<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb47-245"><a href="#cb47-245" aria-hidden="true" tabindex="-1"></a>encrypt_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb47-246"><a href="#cb47-246" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> encrypt_list:</span>
+<span id="cb47-247"><a href="#cb47-247" aria-hidden="true" tabindex="-1"></a>    encrypt_key <span class="op">=</span> encrypt_key <span class="op">+</span> i</span>
+<span id="cb47-248"><a href="#cb47-248" aria-hidden="true" tabindex="-1"></a>encrypt_test <span class="op">=</span><span class="st">"abcdefghijklmnopqrstuvwxyz"</span></span>
+<span id="cb47-249"><a href="#cb47-249" aria-hidden="true" tabindex="-1"></a>test_key <span class="op">=</span> apply_key(encrypt_key, encrypt_test)</span>
+<span id="cb47-250"><a href="#cb47-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-251"><a href="#cb47-251" aria-hidden="true" tabindex="-1"></a><span class="co">#encrypt the target text</span></span>
+<span id="cb47-252"><a href="#cb47-252" aria-hidden="true" tabindex="-1"></a>encoded_text <span class="op">=</span> apply_key(encrypt_key, target_text)</span>
+<span id="cb47-253"><a href="#cb47-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-254"><a href="#cb47-254" aria-hidden="true" tabindex="-1"></a><span class="co">#generate a random decryption key</span></span>
+<span id="cb47-255"><a href="#cb47-255" aria-hidden="true" tabindex="-1"></a>decrypt_list <span class="op">=</span> <span class="bu">list</span>(np.random.choice(chars, size<span class="op">=</span><span class="dv">26</span>, replace<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb47-256"><a href="#cb47-256" aria-hidden="true" tabindex="-1"></a>current_decrypt_key <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb47-257"><a href="#cb47-257" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> decrypt_list:</span>
+<span id="cb47-258"><a href="#cb47-258" aria-hidden="true" tabindex="-1"></a>    current_decrypt_key <span class="op">=</span> current_decrypt_key <span class="op">+</span> i</span>
+<span id="cb47-259"><a href="#cb47-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-260"><a href="#cb47-260" aria-hidden="true" tabindex="-1"></a><span class="co">#Results!</span></span>
+<span id="cb47-261"><a href="#cb47-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-262"><a href="#cb47-262" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Unencrypted text:</span><span class="ch">\n</span><span class="st">'</span>, target_text)</span>
+<span id="cb47-263"><a href="#cb47-263" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">Encrypted text:</span><span class="ch">\n</span><span class="st">'</span>, encoded_text)</span>
+<span id="cb47-264"><a href="#cb47-264" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb47-265"><a href="#cb47-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-266"><a href="#cb47-266" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> iters <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">20001</span>):</span>
+<span id="cb47-267"><a href="#cb47-267" aria-hidden="true" tabindex="-1"></a>    proposed_decrypt_key <span class="op">=</span> get_proposed_key(current_decrypt_key)</span>
+<span id="cb47-268"><a href="#cb47-268" aria-hidden="true" tabindex="-1"></a>    current_score <span class="op">=</span> score(current_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb47-269"><a href="#cb47-269" aria-hidden="true" tabindex="-1"></a>    proposed_score <span class="op">=</span> score(proposed_decrypt_key, encoded_text, trans_counts)</span>
+<span id="cb47-270"><a href="#cb47-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-271"><a href="#cb47-271" aria-hidden="true" tabindex="-1"></a>    <span class="co">#calculate the acceptance probability based on the ratio of the proposed and current scores</span></span>
+<span id="cb47-272"><a href="#cb47-272" aria-hidden="true" tabindex="-1"></a>    ap <span class="op">=</span> <span class="bu">min</span>(<span class="dv">1</span>, math.exp(proposed_score <span class="op">-</span> current_score))</span>
+<span id="cb47-273"><a href="#cb47-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-274"><a href="#cb47-274" aria-hidden="true" tabindex="-1"></a>    <span class="co">#generate a random number between 0 and 1</span></span>
+<span id="cb47-275"><a href="#cb47-275" aria-hidden="true" tabindex="-1"></a>    runif <span class="op">=</span> np.random.uniform()</span>
+<span id="cb47-276"><a href="#cb47-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-277"><a href="#cb47-277" aria-hidden="true" tabindex="-1"></a>    <span class="co">#accept the proposed key only if the random number is less than the probability of acceptance</span></span>
+<span id="cb47-278"><a href="#cb47-278" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> runif <span class="op">&gt;=</span> ap: accept_proposed_key <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb47-279"><a href="#cb47-279" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: accept_proposed_key <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb47-280"><a href="#cb47-280" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> accept_proposed_key: current_decrypt_key <span class="op">=</span> proposed_decrypt_key</span>
+<span id="cb47-281"><a href="#cb47-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-282"><a href="#cb47-282" aria-hidden="true" tabindex="-1"></a>    <span class="co">#print every 1000th iteration</span></span>
+<span id="cb47-283"><a href="#cb47-283" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> iters<span class="op">%</span><span class="dv">500</span> <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb47-284"><a href="#cb47-284" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Iter:'</span>, iters, apply_key(current_decrypt_key, encoded_text)[<span class="dv">0</span>:<span class="dv">99</span>])</span>
+<span id="cb47-285"><a href="#cb47-285" aria-hidden="true" tabindex="-1"></a>        test <span class="op">=</span> apply_key(encrypt_key, alphabet)</span>
+<span id="cb47-286"><a href="#cb47-286" aria-hidden="true" tabindex="-1"></a>        check <span class="op">=</span> apply_key(current_decrypt_key, test)</span>
+<span id="cb47-287"><a href="#cb47-287" aria-hidden="true" tabindex="-1"></a>        correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb47-288"><a href="#cb47-288" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(alphabet)):</span>
+<span id="cb47-289"><a href="#cb47-289" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> alphabet[i] <span class="op">==</span> check[i]: correct <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-290"><a href="#cb47-290" aria-hidden="true" tabindex="-1"></a>        <span class="co">#print('Number of correctly decoded letters:', correct)</span></span>
+<span id="cb47-291"><a href="#cb47-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-292"><a href="#cb47-292" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">Decrypted text:'</span>)</span>
+<span id="cb47-293"><a href="#cb47-293" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(apply_key(current_decrypt_key, encoded_text))</span>
+<span id="cb47-294"><a href="#cb47-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-295"><a href="#cb47-295" aria-hidden="true" tabindex="-1"></a><span class="co">#get number of correct letters</span></span>
+<span id="cb47-296"><a href="#cb47-296" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> apply_key(encrypt_key, alphabet)</span>
+<span id="cb47-297"><a href="#cb47-297" aria-hidden="true" tabindex="-1"></a>check <span class="op">=</span> apply_key(current_decrypt_key, test)</span>
+<span id="cb47-298"><a href="#cb47-298" aria-hidden="true" tabindex="-1"></a>correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb47-299"><a href="#cb47-299" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(alphabet)):</span>
+<span id="cb47-300"><a href="#cb47-300" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> alphabet[i] <span class="op">==</span> check[i]: correct <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-301"><a href="#cb47-301" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb47-302"><a href="#cb47-302" aria-hidden="true" tabindex="-1"></a><span class="co">#print(alphabet)</span></span>
+<span id="cb47-303"><a href="#cb47-303" aria-hidden="true" tabindex="-1"></a><span class="co">#print(check)</span></span>
+<span id="cb47-304"><a href="#cb47-304" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Number of correctly decoded letters:'</span>, correct)</span>
+<span id="cb47-305"><a href="#cb47-305" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb47-306"><a href="#cb47-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-307"><a href="#cb47-307" aria-hidden="true" tabindex="-1"></a>Not bad! I think it's fascinating that the algorithm was also successful on text that contained slang, mis-spellings, and occasional Spanish as in the above example.</span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">Copyright 2022, John King</div>   
+  </div>
+</footer>
+
+
+
+</body></html>

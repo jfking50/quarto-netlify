@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="John King">
+<meta name="dcterms.date" content="2020-05-24">
+
+<title>A Random Walk - Model Selection</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorial/transform.html" rel="next">
+<link href="../tutorial/mlr.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+<link href="../site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="../site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">A Random Walk</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorials</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorials">    
+        <li>
+    <a class="dropdown-item" href="../tutorial/slr.html">
+ <span class="dropdown-text">Simple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/lm_assumptions.html">
+ <span class="dropdown-text">Linear Model Assumptions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/mlr.html">
+ <span class="dropdown-text">Multiple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/model_selection.html">
+ <span class="dropdown-text">Model Selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/transform.html">
+ <span class="dropdown-text">Variable Transformation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/logistic.html">
+ <span class="dropdown-text">Logistic Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/advanced.html">
+ <span class="dropdown-text">Advanced Designs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/np_anova.html">
+ <span class="dropdown-text">Nonparametric ANOVA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/gam.html">
+ <span class="dropdown-text">Generalized Additive Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/svm.html">
+ <span class="dropdown-text">Support Vector Machines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/random_forest.html">
+ <span class="dropdown-text">Random Forests</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/nn_regression.html">
+ <span class="dropdown-text">Neural Network Regression</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-presentations" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Presentations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-presentations">    
+        <li>
+    <a class="dropdown-item" href="../presentations/doe.qmd">
+ <span class="dropdown-text">Design of Experiments</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html">
+ <span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jfking50"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div class="quarto-toggle-container">
+                  <a href="" class="quarto-color-scheme-toggle nav-link" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+              </div>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">Model Selection</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/slr.html" class="sidebar-item-text sidebar-link">Simple Linear Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/lm_assumptions.html" class="sidebar-item-text sidebar-link">Linear Model Assumptions</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/mlr.html" class="sidebar-item-text sidebar-link">Multiple Linear Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/model_selection.html" class="sidebar-item-text sidebar-link active">Model Selection</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/transform.html" class="sidebar-item-text sidebar-link">Variable Transformation</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/logistic.html" class="sidebar-item-text sidebar-link">Logistic Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/advanced.html" class="sidebar-item-text sidebar-link">Advanced Designs</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/np_anova.html" class="sidebar-item-text sidebar-link">Nonparametric ANOVA</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/gam.html" class="sidebar-item-text sidebar-link">Generalized Additive Models</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/svm.html" class="sidebar-item-text sidebar-link">Support Vector Machines</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/random_forest.html" class="sidebar-item-text sidebar-link">Random Forests</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/nn_regression.html" class="sidebar-item-text sidebar-link">Neural Network Regression</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#testing-based-methods" id="toc-testing-based-methods" class="nav-link active" data-scroll-target="#testing-based-methods">Testing-Based Methods</a></li>
+  <li><a href="#criterion-based-methods" id="toc-criterion-based-methods" class="nav-link" data-scroll-target="#criterion-based-methods">Criterion-Based Methods</a></li>
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation">Cross Validation</a>
+  <ul class="collapse">
+  <li><a href="#what-about-the-test-set" id="toc-what-about-the-test-set" class="nav-link" data-scroll-target="#what-about-the-test-set">What About The Test Set?</a></li>
+  </ul></li>
+  <li><a href="#lasso-regression" id="toc-lasso-regression" class="nav-link" data-scroll-target="#lasso-regression">Lasso Regression</a>
+  <ul class="collapse">
+  <li><a href="#background-reading" id="toc-background-reading" class="nav-link" data-scroll-target="#background-reading">Background Reading</a></li>
+  <li><a href="#lasso-regression-in-r" id="toc-lasso-regression-in-r" class="nav-link" data-scroll-target="#lasso-regression-in-r">Lasso Regression In R</a></li>
+  </ul></li>
+  <li><a href="#parting-thought" id="toc-parting-thought" class="nav-link" data-scroll-target="#parting-thought">Parting Thought</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Model Selection</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>John King </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 24, 2020</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p>This post presents methods for finding a balance between under fitting and over fitting a model. Under fitting is when the model is a poor predictor of the response. With linear regression, this is largely addressed through diagnostic checks, which was covered in the tutorial on linear model assumptions. A linear model is over fitted when it includes more predictors than are needed to represent the relationship to the response variable. Appropriately reducing the complexity of the model improves its ability to make predictions based on new data, and it helps with interpretability.</p>
+<p>There are three general approaches to reducing model complexity:</p>
+<ul>
+<li><p>dimension reduction</p></li>
+<li><p>variable selection</p></li>
+<li><p>regularization</p></li>
+</ul>
+<p>Dimension reduction is beyond the scope of this post and will not be covered. This tutorial presents two methods of variable selection (testing- and criterion-based methods) and regularization through lasso regression.</p>
+<section id="testing-based-methods" class="level2">
+<h2 class="anchored" data-anchor-id="testing-based-methods">Testing-Based Methods</h2>
+<p>Testing-based methods are the easiest to implement but should only be considered when there are only a few predictors. The idea is simple. In <strong>forward elimination</strong>, we start with a linear model with no predictors, manually add them one at a time, and keep only those predictors with a low p-value. <strong>Backward elimination</strong> is just the opposite: we start with a linear model that contains all predictors (including interactions, if suspected), remove the predictor with the highest p-value, build a new linear model with the reduced set or predictors, and continue that process until only those predictors with low p-values remain.</p>
+<p>We’ll use the <code>teengamb</code> dataset from the <code>faraway</code> package to demonstrate backward elimination. This dataset contains survey results from a study of teenage gambling in Britain. The response variable is <code>gamble</code>, which is the expenditure on gambling in pounds per year. The predictors are information regarding each survey respondent, such as gender and income.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(faraway)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(teengamb)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(teengamb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["sex"],"name":[1],"type":["int"],"align":["right"]},{"label":["status"],"name":[2],"type":["int"],"align":["right"]},{"label":["income"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["verbal"],"name":[4],"type":["int"],"align":["right"]},{"label":["gamble"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"51","3":"2.00","4":"8","5":"0.0","_rn_":"1"},{"1":"1","2":"28","3":"2.50","4":"8","5":"0.0","_rn_":"2"},{"1":"1","2":"37","3":"2.00","4":"6","5":"0.0","_rn_":"3"},{"1":"1","2":"28","3":"7.00","4":"4","5":"7.3","_rn_":"4"},{"1":"1","2":"65","3":"2.00","4":"8","5":"19.6","_rn_":"5"},{"1":"1","2":"61","3":"3.47","4":"6","5":"0.1","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>A linear model with all predictors is as follows (we’ll assume this model passes all of the required diagnostic checks):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tg <span class="ot">=</span> <span class="fu">lm</span>(gamble<span class="sc">~</span>., <span class="at">data=</span>teengamb)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = gamble ~ ., data = teengamb)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-51.082 -11.320  -1.451   9.452  94.252 
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  22.55565   17.19680   1.312   0.1968    
+sex         -22.11833    8.21111  -2.694   0.0101 *  
+status        0.05223    0.28111   0.186   0.8535    
+income        4.96198    1.02539   4.839 1.79e-05 ***
+verbal       -2.95949    2.17215  -1.362   0.1803    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 22.69 on 42 degrees of freedom
+Multiple R-squared:  0.5267,    Adjusted R-squared:  0.4816 
+F-statistic: 11.69 on 4 and 42 DF,  p-value: 1.815e-06</code></pre>
+</div>
+</div>
+<p>Since the p-value for <code>status</code> is the highest, we remove it first.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tg <span class="ot">=</span> <span class="fu">update</span>(tg, . <span class="sc">~</span> . <span class="sc">-</span>status) <span class="co"># remove status</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = gamble ~ sex + income + verbal, data = teengamb)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-50.639 -11.765  -1.594   9.305  93.867 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  24.1390    14.7686   1.634   0.1095    
+sex         -22.9602     6.7706  -3.391   0.0015 ** 
+income        4.8981     0.9551   5.128 6.64e-06 ***
+verbal       -2.7468     1.8253  -1.505   0.1397    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 22.43 on 43 degrees of freedom
+Multiple R-squared:  0.5263,    Adjusted R-squared:  0.4933 
+F-statistic: 15.93 on 3 and 43 DF,  p-value: 4.148e-07</code></pre>
+</div>
+</div>
+<p>Then we remove <code>verbal</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>tg <span class="ot">=</span> <span class="fu">update</span>(tg, . <span class="sc">~</span> . <span class="sc">-</span>verbal) <span class="co"># remove verbal</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = gamble ~ sex + income, data = teengamb)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-49.757 -11.649   0.844   8.659 100.243 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    4.041      6.394   0.632  0.53070    
+sex          -21.634      6.809  -3.177  0.00272 ** 
+income         5.172      0.951   5.438 2.24e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 22.75 on 44 degrees of freedom
+Multiple R-squared:  0.5014,    Adjusted R-squared:  0.4787 
+F-statistic: 22.12 on 2 and 44 DF,  p-value: 2.243e-07</code></pre>
+</div>
+</div>
+<p>Notice that even though we eliminated half of the predictors from the model, we only slightly reduced the adjusted <span class="math inline">\(R^{2}\)</span>. The simpler model explains almost as much variance in the response with only half the number of predictors. Something to keep in mind when conducting forward or backward elimination is that the predictor p-value does not necessarily have to be above 0.05 to eliminate the predictor from the model. You could also choose something higher - even up to around 0.15 to 0.20 if predictive performance is the goal. For example, note that the p-value for <code>verbal</code> in the second model was 0.14, and the adjusted <span class="math inline">\(R^{2}\)</span> for the model was the highest of the three. The coefficient for <code>verbal</code> was also negative, which is what we’d expect: teens with higher verbal scores spend less money on gambling. We should therefore consider keeping <code>verbal</code> in the model. As you can see, there’s a little bit of an art to this method.</p>
+</section>
+<section id="criterion-based-methods" class="level2">
+<h2 class="anchored" data-anchor-id="criterion-based-methods">Criterion-Based Methods</h2>
+<p>As previously stated, testing-based procedures should only be considered when there are just a few factors to consider. The more potential factors in your model, the greater the chance that you’ll miss the optimal combination. We saw in the previous section that we had two competing goals: model simplicity versus model fit. Akaike <span class="citation" data-cites="akaike1974">(<a href="#ref-akaike1974" role="doc-biblioref">Akaike 1974</a>)</span> developed a method to measure this balance between simplicity and fit called the <strong>Akaike Information Criterion (AIC)</strong>, which takes the form of:</p>
+<p><span class="math display">\[AIC = 2(p+1) - 2ln(\hat{L})\]</span></p>
+<p>where,</p>
+<ul>
+<li><span class="math inline">\(p\)</span> is the number of predictors, and</li>
+<li><span class="math inline">\(\hat{L}\)</span> is the maximized likelihood for the predictive model.</li>
+</ul>
+<p>We then choose the model with the lowest AIC.</p>
+<p>The <strong>Bayes Information Criterion (BIC)</strong> is an alternative to AIC and replaces <span class="math inline">\(2(p+1)\)</span> with <span class="math inline">\(ln(n)(p+1)\)</span>, where <span class="math inline">\(n\)</span> is the number of observations. Adding <span class="math inline">\(ln(n)\)</span> increases the penalty for the number of factors in the model more for larger data sets. Which criterion you use can therefore depend on the dataset you’re working with.</p>
+<p>Another common estimator of error is <strong>Mallow’s Cp</strong>, which is defined as:</p>
+<p><span class="math display">\[C_{p}=\frac{1}{n}(RSS+2p\hat{\sigma}^{2})\]</span></p>
+<p>where,</p>
+<ul>
+<li><span class="math inline">\(RSS\)</span> is the root sum of squares,</li>
+<li><span class="math inline">\(p\)</span> is the number of predictor, and</li>
+<li><span class="math inline">\(\hat{\sigma}^{2}\)</span> is an estimate of the variance of the error, <span class="math inline">\(\varepsilon\)</span>, in the linear regression equation.</li>
+</ul>
+<p>As with AIC and BIC, the penalty term (in this case <span class="math inline">\(2p\hat{\sigma}^{2}\)</span>) increases as the number of predictors in the model increases, which is intended to balance the corresponding decrease in <span class="math inline">\(RSS\)</span>. With each of these methods, as we vary <span class="math inline">\(p\)</span>, we get an associated criterion value from which we select the minimum as the best model. In <em>R</em>, we can calculate AIC and BIC with the <code>bestglm()</code> function from the <code>bestglm</code> package. Be aware that <code>bestglm()</code> expects the data to be in a dataframe with the response variable in the last column.</p>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>bestglm()</code> is picky about how your dataset is structured. It expects a dataframe with the response variable in the last column and all other columns are predictors. Don’t include any other “extra” columns. Fortunately, teengamb is already set up that way.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bestglm)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>tg.AIC <span class="ot">=</span> <span class="fu">bestglm</span>(teengamb, <span class="at">IC=</span><span class="st">"AIC"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># this will provide the best model</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>tg.AIC</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>AIC
+BICq equivalent for q in (0.672366796081496, 0.87054246206156)
+Best Model:
+              Estimate Std. Error   t value     Pr(&gt;|t|)
+(Intercept)  24.138972 14.7685884  1.634481 1.094591e-01
+sex         -22.960220  6.7705747 -3.391177 1.502436e-03
+income        4.898090  0.9551179  5.128256 6.643750e-06
+verbal       -2.746817  1.8252807 -1.504874 1.396672e-01</code></pre>
+</div>
+</div>
+<p>Notice that <code>verbal</code> is included in the best fit model even though its p-value is &gt; 0.05. Using <code>summary()</code>, we get a likelihood-ratio test for the best model compared to the null model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tg.AIC)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Fitting algorithm:  AIC-leaps
+Best Model:
+           df deviance
+Null Model 43 21641.54
+Full Model 46 45689.49
+
+    likelihood-ratio test - GLM
+
+data:  H0: Null Model vs. H1: Best Fit AIC-leaps
+X = 24048, df = 3, p-value &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>To get the best model in a <code>lm()</code> format:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tg.AIC<span class="sc">$</span>BestModel</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = y ~ ., data = data.frame(Xy[, c(bestset[-1], FALSE), 
+    drop = FALSE], y = y))
+
+Coefficients:
+(Intercept)          sex       income       verbal  
+     24.139      -22.960        4.898       -2.747  </code></pre>
+</div>
+</div>
+<p>We can also see a comparison of the best model (model 1) to the next 4 best models.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tg.AIC<span class="sc">$</span>BestModels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["sex"],"name":[1],"type":["lgl"],"align":["right"]},{"label":["status"],"name":[2],"type":["lgl"],"align":["right"]},{"label":["income"],"name":[3],"type":["lgl"],"align":["right"]},{"label":["verbal"],"name":[4],"type":["lgl"],"align":["right"]},{"label":["Criterion"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"TRUE","2":"FALSE","3":"TRUE","4":"TRUE","5":"294.2145","_rn_":"1"},{"1":"TRUE","2":"FALSE","3":"TRUE","4":"FALSE","5":"294.6268","_rn_":"2"},{"1":"TRUE","2":"TRUE","3":"TRUE","4":"TRUE","5":"296.1758","_rn_":"3"},{"1":"TRUE","2":"TRUE","3":"TRUE","4":"FALSE","5":"296.2086","_rn_":"4"},{"1":"FALSE","2":"TRUE","3":"TRUE","4":"TRUE","5":"301.6659","_rn_":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>We can also see the best model (row 3 below) and its subsets. Row 0 contains just the y-intercept, and in each successive row one predictor is added tp the model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tg.AIC<span class="sc">$</span>Subsets</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["(Intercept)"],"name":[1],"type":["lgl"],"align":["right"]},{"label":["sex"],"name":[2],"type":["lgl"],"align":["right"]},{"label":["status"],"name":[3],"type":["lgl"],"align":["right"]},{"label":["income"],"name":[4],"type":["lgl"],"align":["right"]},{"label":["verbal"],"name":[5],"type":["lgl"],"align":["right"]},{"label":["logLikelihood"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["AIC"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"TRUE","2":"FALSE","3":"FALSE","4":"FALSE","5":"FALSE","6":"-161.6677","7":"323.3354","_rn_":"0"},{"1":"TRUE","2":"FALSE","3":"FALSE","4":"TRUE","5":"FALSE","6":"-150.1678","7":"302.3356","_rn_":"1"},{"1":"TRUE","2":"TRUE","3":"FALSE","4":"TRUE","5":"FALSE","6":"-145.3134","7":"294.6268","_rn_":"2"},{"1":"TRUE","2":"TRUE","3":"FALSE","4":"TRUE","5":"TRUE","6":"-144.1072","7":"294.2145","_rn_":"3*"},{"1":"TRUE","2":"TRUE","3":"TRUE","4":"TRUE","5":"TRUE","6":"-144.0879","7":"296.1758","_rn_":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Using BIC, however, <code>verbal</code> is excluded from the best fit model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tg.BIC <span class="ot">=</span> <span class="fu">bestglm</span>(teengamb, <span class="at">IC=</span><span class="st">"BIC"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>tg.BIC</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>BIC
+BICq equivalent for q in (0.0507226962510261, 0.672366796081496)
+Best Model:
+              Estimate Std. Error    t value     Pr(&gt;|t|)
+(Intercept)   4.040829  6.3943499  0.6319374 5.306977e-01
+sex         -21.634391  6.8087973 -3.1774174 2.717320e-03
+income        5.171584  0.9510477  5.4377755 2.244878e-06</code></pre>
+</div>
+</div>
+<p>For Mallow’s Cp, we can use the <code>leaps</code> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaps)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># leaps expects x and y to be passed separately</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>tg.cp <span class="ot">=</span> <span class="fu">leaps</span>(<span class="at">x=</span>teengamb[<span class="sc">-</span><span class="dv">5</span>], <span class="at">y=</span>teengamb<span class="sc">$</span>gamble, <span class="at">method=</span><span class="st">"Cp"</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>tg.cp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$which
+      1     2     3     4
+1 FALSE FALSE  TRUE FALSE
+1  TRUE FALSE FALSE FALSE
+1 FALSE FALSE FALSE  TRUE
+1 FALSE  TRUE FALSE FALSE
+2  TRUE FALSE  TRUE FALSE
+2 FALSE  TRUE  TRUE FALSE
+2 FALSE FALSE  TRUE  TRUE
+2  TRUE  TRUE FALSE FALSE
+2  TRUE FALSE FALSE  TRUE
+2 FALSE  TRUE FALSE  TRUE
+3  TRUE FALSE  TRUE  TRUE
+3  TRUE  TRUE  TRUE FALSE
+3 FALSE  TRUE  TRUE  TRUE
+3  TRUE  TRUE FALSE  TRUE
+4  TRUE  TRUE  TRUE  TRUE
+
+$label
+[1] "(Intercept)" "1"           "2"           "3"           "4"          
+
+$size
+ [1] 2 2 2 2 3 3 3 3 3 3 4 4 4 4 5
+
+$Cp
+ [1] 11.401283 30.984606 41.445676 45.517426  3.248323 12.003293 12.276400
+ [8] 25.967108 26.743051 42.897591  3.034526  4.856329 10.256053 26.416920
+[15]  5.000000</code></pre>
+</div>
+</div>
+<p>It takes a little finagling to get the predictors that we should include in the best model. We want the index of the minimum value in <code>$Cp</code>, and we use that to find the corresponding row in <code>$which</code> to determine the predictors that should remain in the model. Columns 1, 2, and 4 correspond to <code>sex</code>, <code>status</code>, and <code>verbal</code>, which is the same as the AIC result.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>tg.cp<span class="sc">$</span>which[<span class="fu">which.min</span>(tg.cp<span class="sc">$</span>Cp), ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    1     2     3     4 
+ TRUE FALSE  TRUE  TRUE </code></pre>
+</div>
+</div>
+</section>
+<section id="cross-validation" class="level2">
+<h2 class="anchored" data-anchor-id="cross-validation">Cross Validation</h2>
+<p>An alternative approach to using AIC, BIC, or Cp is to use cross validation (CV) to select the best model. The idea is that we randomly divide our data into a <strong>training set</strong> and a <strong>test set</strong>. An 80/20 split between the training set and test set is common but will depend on your sample size. For very large sample sizes (in the millions), the training set can contain a larger percentage, while for relatively small sample sizes, the split may be closer to 50/50.</p>
+<p>The training set is further randomly divided into <span class="math inline">\(k\)</span> subsets (also called <strong>folds</strong>), and one of these folds is withheld as the <strong>validation set</strong>. We fit a model to the remaining training set, and then measure the prediction error using the validation set. Typically, the prediction error is measured by the mean squared error (MSE) for a quantitative response variable. We repeat this process by cycling though each of the folds and holding it out as the validation set. The cross validated error (CV error) is then the average prediction error for the <span class="math inline">\(k\)</span> folds.</p>
+<p>The website for the <code>scikit-learn</code> module for Python has a good visualization (shown below) of these various data sets and a <a href="https://scikit-learn.org/stable/modules/cross_validation.html">good explanation</a> of this and other cross validation methods. A more thorough, academic treatment of cross validation may be found in <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Chapter 7.10</a> of Elements of Statistical Learning written by Trevor Hastie, Robert Tibshirani, and Jerome Friedman.</p>
+<p><img src="https://scikit-learn.org/stable/_images/grid_search_cross_validation.png" class="img-fluid"></p>
+<p>Once the CV process is complete, we re-combine each of the folds into a single training set for a final evaluation against the test set. With this approach, we can compare multiple CV methods and choose the method with the best performance.</p>
+<p>Notice that we are not using an Information Criterion (IC) anywhere in this method. Another difference is that with criterion-based methods, we chose the model with the lowest IC score, but with CV, we don’t choose the model with the lowest CV error. Instead, we calculate the standard deviation (<span class="math inline">\(\sigma\)</span>) of the CV error for each of the <span class="math inline">\(p\)</span> predictors and then choose the smallest model that’s CV error is within one standard error of the lowest. Standard error is defined as <span class="math inline">\(se = \sigma/\sqrt(k)\)</span>. This is best shown graphically, which you’ll see below.</p>
+<p>CV techniques are particularly useful for datasets with many predictors, but for consistency, we’ll stick with the <code>teengamb</code> dataset. Below, we’ll perform k-fold cross validation on the <code>teamgamb</code> dataset, once again using <code>bestglm()</code>. We’ll use an 80/20 train/test split.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>test_set <span class="ot">=</span> <span class="fu">sample</span>(<span class="dv">47</span>, <span class="dv">10</span>, <span class="at">replace=</span><span class="cn">FALSE</span>)  <span class="co"># randomly select row indices</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>tg_test <span class="ot">=</span> teengamb[test_set, ]              <span class="co"># create test set</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>tg_train <span class="ot">=</span> teengamb[<span class="sc">-</span>test_set, ]            <span class="co"># create training set </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The training set has only 24 observations, so if we further partition it into a large number of folds, we’ll have a small number of observations in each of the validation folds. For this example, we’ll choose just 3 folds. In the <code>bestglm()</code> function, we specify <code>CV</code> as the IC and pass three arguments to specify cross validation parameters. As mentioned, there are a variety of cross validation methods to choose from. For the method described above, we specify <code>Method="HTF"</code>, which you might have noticed are the first letters of the last names of the authors mentioned in the “Elements of Statistical Learning” reference above. <code>K=3</code> specifies the number of k-folds, and we can chose one or more repetition with <code>REP</code>. Remember that cross validation randomly partitions the data into folds, so if we want to repeat the CV process with different random partitions, we increase the <code>REP</code> value. Due to the small sample size and number of folds, we’ll do 10 repetitions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>tg.cv <span class="ot">=</span> <span class="fu">bestglm</span>(tg_train, <span class="at">IC=</span><span class="st">"CV"</span>, <span class="at">CVArgs=</span><span class="fu">list</span>(<span class="at">Method=</span><span class="st">"HTF"</span>, <span class="at">K=</span><span class="dv">3</span>, <span class="at">REP=</span><span class="dv">10</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>tg.cv</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CV(K = 3, REP = 10)
+BICq equivalent for q in (0.000199326484859652, 0.329344259543028)
+Best Model:
+             Estimate Std. Error    t value     Pr(&gt;|t|)
+(Intercept) -6.132874   6.892883 -0.8897401 3.796805e-01
+income       5.877955   1.149221  5.1147292 1.134028e-05</code></pre>
+</div>
+</div>
+<p>The model above is the model with the fewest predictors that is within one standard error of the model with the lowest CV error. To illustrate this relationship, next we’ll visualize how this model was determined based on the CV and standard errors. We can get the CV errors and the <span class="math inline">\(se\)</span> from the <code>tg.cv</code> object.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="model_selection_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<section id="what-about-the-test-set" class="level3">
+<h3 class="anchored" data-anchor-id="what-about-the-test-set">What About The Test Set?</h3>
+<p>This model selection method included <code>income</code> as the only predictor variable in their respective best model. However, the coefficients differ between the two models, so now we can bring in the test set and compare against the best BIC model. For a fair comparison with the CV results, we’ll find the best model using BIC on the training set only.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the BIC model on the training set only</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>tg_train.BIC <span class="ot">=</span> <span class="fu">bestglm</span>(tg_train, <span class="at">IC=</span><span class="st">"BIC"</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>bic_preds <span class="ot">=</span> <span class="fu">predict</span>(tg_train.BIC<span class="sc">$</span>BestModel, <span class="at">newdata =</span> <span class="fu">data.frame</span>(tg_test[, <span class="sc">-</span><span class="dv">5</span>]))</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"BIC predictors included are:"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "BIC predictors included are:"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(tg_train.BIC<span class="sc">$</span>BestModel<span class="sc">$</span>coefficients)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)         sex      income 
+   3.515245  -19.116151    5.362915 </code></pre>
+</div>
+</div>
+<p>Now we’ll get the CV model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># based on the CV results, only income should be included as a factor</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>cv.glm <span class="ot">=</span> <span class="fu">glm</span>(gamble<span class="sc">~</span>income, <span class="at">data=</span>tg_train)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>cv_preds <span class="ot">=</span> <span class="fu">predict</span>(cv.glm, <span class="at">newdata =</span> <span class="fu">data.frame</span>(tg_test[, <span class="sc">-</span><span class="dv">5</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We’ll use mean absolute error as our measure of error.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate and compare mean absolute error</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"BIC mean absolute error:"</span>, <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(bic_preds <span class="sc">-</span> tg_test<span class="sc">$</span>gamble)), <span class="dv">1</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "BIC mean absolute error: 10.9"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"CV mean absolute error:"</span>, <span class="fu">round</span>(<span class="fu">mean</span>(<span class="fu">abs</span>(cv_preds <span class="sc">-</span> tg_test<span class="sc">$</span>gamble)), <span class="dv">1</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "CV mean absolute error: 16.3"</code></pre>
+</div>
+</div>
+<p>Using mean absolute error, BIC out-performed the cross-validated model. This result shouldn’t be too surprising given that the BIC model contained additional predictor variables that appeared to be statistically significant.</p>
+</section>
+</section>
+<section id="lasso-regression" class="level2">
+<h2 class="anchored" data-anchor-id="lasso-regression">Lasso Regression</h2>
+<p>Ridge and lasso regression are closely related regularization techniques to reduce model complexity. The primary difference between the two methods is that ridge regression reduces factor coefficients close to (but not equal to) zero, while lasso regression reduces the coefficients all the way to zero, which makes it useful for reducing model complexity by eliminating factors.</p>
+<section id="background-reading" class="level3">
+<h3 class="anchored" data-anchor-id="background-reading">Background Reading</h3>
+<p>For the theoretical framework, please refer to <a href="https://towardsdatascience.com/ridge-and-lasso-regression-a-complete-guide-with-python-scikit-learn-e20e34bcbf0b">this article</a>. Don’t worry about the Python code if you’re not familiar with it. Just read the text portions of the article that explain the how ridge and, more importantly, lasso regression work.</p>
+</section>
+<section id="lasso-regression-in-r" class="level3">
+<h3 class="anchored" data-anchor-id="lasso-regression-in-r">Lasso Regression In R</h3>
+<p>Lasso regression is particularly useful when a dataset has many factors, but we’ll continue to use the <code>teengamb</code> data so we can compare the results with the <code>stepAIC()</code> method. Performing lasso regression with the <code>glmnet</code> package is straight forward. The function has two required arguments, an <code>x</code> and a <code>y</code>, where <code>x</code> are the data associated with the predictors (note <code>x</code> must be a <code>data.matrix</code>, not a <code>data.frame</code>), and <code>y</code> is the response as a vector. By default, <code>glmnet</code> automatically scales and centers the data, and then converts them back to the original scale when providing results. If we plot the results, we get the following.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># for some reason, glmnet works best with data.matrix instead of as.matrix</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">data.matrix</span>(tg_train[<span class="sc">-</span><span class="dv">5</span>])</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> tg_train<span class="sc">$</span>gamble</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>tg.lasso <span class="ot">=</span> <span class="fu">glmnet</span>(x, y)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tg.lasso, <span class="at">xvar=</span><span class="st">"lambda"</span>, <span class="at">label=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="model_selection_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Each of the above lines represents a predictor. The number next to each line on the left side of the plot refers to the column number in the <code>x</code> matrix. The vertical axis represents the factor coefficient. The bottom x axis is <span class="math inline">\(log(\lambda)\)</span>, and the top x axis is the associated number of predictors included in the model.</p>
+<p>So how do we interpret this plot? At the far right, we can see that the coefficient for every predictor is zero. In other words, this is the null model. As <span class="math inline">\(\lambda\)</span> decreases, predictors are added one at a time to the model. Since predictor #3 (<code>income</code>) is the first to have a non-zero coefficient, it is the most significant. <code>sex</code> (predictor #1) is the next non-zero coefficient followed by <code>verbal</code> (predictor #4) and then <code>status</code> (predictor #2). If we compare this order with the p-values from the best fit linear model, we see that there is consistency. Note that <code>income</code> was the first non-zero coefficient, and it has the lowest p-value in the linear model. Also note that the maximum coefficients in the lasso regression plot are also consistent with the linear model coefficients.</p>
+<p>Our task now is to find the model that has good predictive power while including only the most significant predictors. In other words, we need a method to find the right <span class="math inline">\(\lambda\)</span> value. Before we get to how we identify that <span class="math inline">\(\lambda\)</span>, let’s look at some other useful information from <code>tg.lasso</code>. If we print our glmnet object, we see (going by columns from left to right) the number of predictors included in the model (Df, not to be confused with the degrees of freedom in a linear model summary), the percent of null deviance explained, and the associated <span class="math inline">\(\lambda\)</span> value.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(tg.lasso)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  glmnet(x = x, y = y) 
+
+   Df  %Dev  Lambda
+1   0  0.00 21.9800
+2   1  7.26 20.0300
+3   1 13.29 18.2500
+4   1 18.30 16.6300
+5   1 22.45 15.1500
+6   1 25.90 13.8100
+7   1 28.77 12.5800
+8   1 31.15 11.4600
+9   2 34.07 10.4400
+10  2 36.78  9.5160
+11  2 39.03  8.6710
+12  2 40.90  7.9010
+13  2 42.46  7.1990
+14  2 43.75  6.5590
+15  2 44.82  5.9770
+16  2 45.71  5.4460
+17  3 46.46  4.9620
+18  3 47.38  4.5210
+19  3 48.14  4.1190
+20  3 48.77  3.7530
+21  3 49.30  3.4200
+22  3 49.73  3.1160
+23  3 50.10  2.8390
+24  3 50.40  2.5870
+25  3 50.65  2.3570
+26  3 50.85  2.1480
+27  3 51.03  1.9570
+28  3 51.17  1.7830
+29  3 51.29  1.6250
+30  3 51.39  1.4800
+31  3 51.47  1.3490
+32  3 51.54  1.2290
+33  3 51.59  1.1200
+34  3 51.64  1.0200
+35  3 51.68  0.9298
+36  3 51.71  0.8472
+37  3 51.74  0.7719
+38  3 51.76  0.7033
+39  3 51.78  0.6409
+40  3 51.79  0.5839
+41  3 51.80  0.5320
+42  4 51.83  0.4848
+43  4 51.85  0.4417
+44  4 51.87  0.4025
+45  4 51.89  0.3667
+46  4 51.90  0.3341
+47  4 51.91  0.3045
+48  4 51.92  0.2774
+49  4 51.93  0.2528
+50  4 51.93  0.2303
+51  4 51.94  0.2099
+52  4 51.94  0.1912
+53  4 51.95  0.1742
+54  4 51.95  0.1587
+55  4 51.95  0.1446
+56  4 51.95  0.1318
+57  4 51.96  0.1201
+58  4 51.96  0.1094
+59  4 51.96  0.0997
+60  4 51.96  0.0908
+61  4 51.96  0.0828
+62  4 51.96  0.0754
+63  4 51.96  0.0687
+64  4 51.96  0.0626</code></pre>
+</div>
+</div>
+<p>We can also see the coefficient values for any given <span class="math inline">\(\lambda\)</span> with <code>coef</code>. We can see that small values of <span class="math inline">\(\lambda\)</span> include more predictors and so correspond with the right side of the plot above. We can get the coefficients for any given <span class="math inline">\(\lambda\)</span> value with <code>coef()</code>. If we choose the smallest values of <span class="math inline">\(\lambda\)</span> from the above data, we get:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Note that we specify lambda with s</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(tg.lasso, <span class="at">s=</span><span class="fl">0.0626</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>5 x 1 sparse Matrix of class "dgCMatrix"
+                      s1
+(Intercept)  18.03799848
+sex         -18.24900253
+status        0.08230075
+income        5.20255057
+verbal       -2.69223049</code></pre>
+</div>
+</div>
+<p>Now we can more directly compare these coefficients to the full linear model coefficients. Recall that we withheld a test set prior to performing lasso regression, so the coefficients are close, but not equal to the linear model coefficients.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sumary</span>(<span class="fu">lm</span>(gamble<span class="sc">~</span>., <span class="at">data=</span>teengamb))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Estimate Std. Error t value  Pr(&gt;|t|)
+(Intercept)  22.555651  17.196803  1.3116   0.19677
+sex         -22.118330   8.211115 -2.6937   0.01011
+status        0.052234   0.281112  0.1858   0.85349
+income        4.961979   1.025392  4.8391 1.792e-05
+verbal       -2.959493   2.172150 -1.3625   0.18031
+
+n = 47, p = 5, Residual SE = 22.69034, R-Squared = 0.53</code></pre>
+</div>
+</div>
+<p>If we choose a <span class="math inline">\(\lambda\)</span> associated with 2 Df, we see that only two predictors have non-zero coefficients.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(tg.lasso, <span class="at">s=</span><span class="fl">5.9770</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>5 x 1 sparse Matrix of class "dgCMatrix"
+                   s1
+(Intercept)  5.858393
+sex         -8.912086
+status       .       
+income       4.039764
+verbal       .       </code></pre>
+</div>
+</div>
+<p>To find the optimal value for <span class="math inline">\(\lambda\)</span>, we use cross validation again. We can include cross validation in the <code>glmnet()</code> function by prepending <code>cv.</code> as shown below. The default number of folds in the <code>cv.glmnet</code> function is 10, which is fine for this example. There’s a built-in method for plotting the results as we did manually above.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>tg.cv <span class="ot">=</span> <span class="fu">cv.glmnet</span>(x, y)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tg.cv)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="model_selection_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>What we get is the cross validation curve (red dots) and two values for <span class="math inline">\(\lambda\)</span> (vertical dashed lines). The left dashed line is the value of lambda that gives the minimum mean cross-validated error. The right dashed line is the value of <span class="math inline">\(\lambda\)</span> whose error is within one standard deviation of the minimum. This is the <span class="math inline">\(\lambda\)</span> we’ve been after. We can get the coefficients associated with this <span class="math inline">\(\lambda\)</span> by specifying <code>s = "lambda.1se"</code>. Our cross validated best fit lasso regression model is shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(tg.cv, <span class="at">s =</span> <span class="st">"lambda.1se"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>5 x 1 sparse Matrix of class "dgCMatrix"
+                   s1
+(Intercept) 12.864028
+sex          .       
+status       .       
+income       1.826509
+verbal       .       </code></pre>
+</div>
+</div>
+<p>For a more thorough discussion of the <code>glmnet</code> package, including its use with non-Gaussian data, refer to the <a href="https://web.stanford.edu/~hastie/glmnet/glmnet_alpha.html">vignette</a> written by Trevor Hastie and Junyang Qian.</p>
+</section>
+</section>
+<section id="parting-thought" class="level2">
+<h2 class="anchored" data-anchor-id="parting-thought">Parting Thought</h2>
+<p>In this chapter, we have seen that different methods for model selection can produce different “best” models, which might make you leery about the whole thing. Remember the George Box quote:</p>
+<blockquote class="blockquote">
+<p>All models are wrong…</p>
+</blockquote>
+<p>We’re just trying to find one that’s useful.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-akaike1974" class="csl-entry" role="doc-biblioentry">
+Akaike, Hirotugu. 1974. <span>“A New Look at the Statistical Model Identification.”</span> <em>IEEE Transactions on Automatic Control</em> 19(6).
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'alternate';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/mlr.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Multiple Linear Regression</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../tutorial/transform.html" class="pagination-link">
+        <span class="nav-page-text">Variable Transformation</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">Copyright 2022, John King</div>   
+  </div>
+</footer>
+
+
+
+</body></html>

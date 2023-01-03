@@ -1,0 +1,104 @@
+{
+  "index.qmd": {
+    "index.html": "625432bd"
+  },
+  "404.md": {
+    "404.html": "32c8b4ba"
+  },
+  "blog.qmd": {
+    "blog.html": "a1b89566"
+  },
+  "about.qmd": {
+    "about.html": "aaecb91a"
+  },
+  "tutorial/advanced.qmd": {
+    "advanced.html": "58a9f946"
+  },
+  "tutorial/gam.qmd": {
+    "gam.html": "bc8ff1cb"
+  },
+  "tutorial/lm_assumptions.qmd": {
+    "lm_assumptions.html": "bb6df271"
+  },
+  "tutorial/logistic.qmd": {
+    "logistic.html": "71f3c4b3"
+  },
+  "tutorial/mlr.qmd": {
+    "mlr.html": "27a788c2"
+  },
+  "tutorial/model_selection.qmd": {
+    "model_selection.html": "addd4a59"
+  },
+  "tutorial/nn_regression.qmd": {
+    "nn_regression.html": "5b7dcb51"
+  },
+  "tutorial/np_anova.qmd": {
+    "np_anova.html": "4b1bb939"
+  },
+  "tutorial/random_forest.qmd": {
+    "random_forest.html": "b056d201"
+  },
+  "tutorial/slr.qmd": {
+    "slr.html": "15b7e34c"
+  },
+  "tutorial/svm.qmd": {
+    "svm.html": "b4599a52"
+  },
+  "tutorial/transform.qmd": {
+    "transform.html": "29a2e0a1"
+  },
+  "posts/wordle/index.qmd": {
+    "index.html": "1da9d122"
+  },
+  "404.qmd": {
+    "404.html": "22a72c1f"
+  },
+  "posts/adjusted_stats/index.qmd": {
+    "index.html": "97135d6a"
+  },
+  "posts/collatz/index.qmd": {
+    "index.html": "4f10b8a8"
+  },
+  "posts/colonize/index.qmd": {
+    "index.html": "52e1dc08"
+  },
+  "posts/decipher/index.qmd": {
+    "index.html": "0c7bf740"
+  },
+  "posts/dqn_ttt/index.qmd": {
+    "index.html": "b0bf5581"
+  },
+  "posts/knn_art/index.qmd": {
+    "index.html": "1b8e3889"
+  },
+  "posts/maze/index.qmd": {
+    "index.html": "7e293c1f"
+  },
+  "posts/predict_football/index.qmd": {
+    "index.html": "c3daf87b"
+  },
+  "posts/qlearn/index.qmd": {
+    "index.html": "c67c759f"
+  },
+  "posts/recaman/index.qmd": {
+    "index.html": "64742046"
+  },
+  "posts/res5/index.qmd": {
+    "index.html": "d8e87b78"
+  },
+  "posts/simple_rating_system/index.qmd": {
+    "index.html": "113f996d"
+  },
+  "posts/tripeaks/index.qmd": {
+    "index.html": "beda7808"
+  },
+  "posts/oregon_football/index.qmd": {
+    "index.html": "bc9e7d60"
+  },
+  "posts/flow/index.qmd": {
+    "index.html": "6313eab7"
+  },
+  "presentations/doe.qmd": {
+    "doe.html": "edb4a181"
+  }
+}

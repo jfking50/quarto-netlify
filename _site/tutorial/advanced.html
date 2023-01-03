@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="John King">
+<meta name="dcterms.date" content="2020-05-27">
+
+<title>A Random Walk - Advanced Designs</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorial/np_anova.html" rel="next">
+<link href="../tutorial/logistic.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+<script src="../site_libs/htmlwidgets-1.6.0/htmlwidgets.js"></script>
+<script src="../site_libs/plotly-binding-4.10.1/plotly.js"></script>
+<script src="../site_libs/typedarray-0.1/typedarray.min.js"></script>
+<script src="../site_libs/jquery-3.5.1/jquery.min.js"></script>
+<link href="../site_libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet">
+<script src="../site_libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="../site_libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="../site_libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+<link href="../site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="../site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">A Random Walk</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tutorials" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tutorials</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tutorials">    
+        <li>
+    <a class="dropdown-item" href="../tutorial/slr.html">
+ <span class="dropdown-text">Simple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/lm_assumptions.html">
+ <span class="dropdown-text">Linear Model Assumptions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/mlr.html">
+ <span class="dropdown-text">Multiple Linear Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/model_selection.html">
+ <span class="dropdown-text">Model Selection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/transform.html">
+ <span class="dropdown-text">Variable Transformation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/logistic.html">
+ <span class="dropdown-text">Logistic Regression</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/advanced.html">
+ <span class="dropdown-text">Advanced Designs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/np_anova.html">
+ <span class="dropdown-text">Nonparametric ANOVA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/gam.html">
+ <span class="dropdown-text">Generalized Additive Models</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/svm.html">
+ <span class="dropdown-text">Support Vector Machines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/random_forest.html">
+ <span class="dropdown-text">Random Forests</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tutorial/nn_regression.html">
+ <span class="dropdown-text">Neural Network Regression</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-presentations" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Presentations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-presentations">    
+        <li>
+    <a class="dropdown-item" href="../presentations/doe.qmd">
+ <span class="dropdown-text">Design of Experiments</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html">
+ <span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jfking50"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div class="quarto-toggle-container">
+                  <a href="" class="quarto-color-scheme-toggle nav-link" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+              </div>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">Advanced Designs</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/slr.html" class="sidebar-item-text sidebar-link">Simple Linear Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/lm_assumptions.html" class="sidebar-item-text sidebar-link">Linear Model Assumptions</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/mlr.html" class="sidebar-item-text sidebar-link">Multiple Linear Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/model_selection.html" class="sidebar-item-text sidebar-link">Model Selection</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/transform.html" class="sidebar-item-text sidebar-link">Variable Transformation</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/logistic.html" class="sidebar-item-text sidebar-link">Logistic Regression</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/advanced.html" class="sidebar-item-text sidebar-link active">Advanced Designs</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/np_anova.html" class="sidebar-item-text sidebar-link">Nonparametric ANOVA</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/gam.html" class="sidebar-item-text sidebar-link">Generalized Additive Models</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/svm.html" class="sidebar-item-text sidebar-link">Support Vector Machines</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/random_forest.html" class="sidebar-item-text sidebar-link">Random Forests</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/nn_regression.html" class="sidebar-item-text sidebar-link">Neural Network Regression</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction-and-background" id="toc-introduction-and-background" class="nav-link active" data-scroll-target="#introduction-and-background">Introduction and Background</a></li>
+  <li><a href="#central-composite-designs" id="toc-central-composite-designs" class="nav-link" data-scroll-target="#central-composite-designs">Central Composite Designs</a>
+  <ul class="collapse">
+  <li><a href="#augmented-central-composite-designs" id="toc-augmented-central-composite-designs" class="nav-link" data-scroll-target="#augmented-central-composite-designs">Augmented Central Composite Designs</a></li>
+  </ul></li>
+  <li><a href="#response-surface-methodology" id="toc-response-surface-methodology" class="nav-link" data-scroll-target="#response-surface-methodology">Response Surface Methodology</a></li>
+  <li><a href="#nearly-orthogonal-latin-hypercube-designs" id="toc-nearly-orthogonal-latin-hypercube-designs" class="nav-link" data-scroll-target="#nearly-orthogonal-latin-hypercube-designs">Nearly Orthogonal Latin Hypercube Designs</a>
+  <ul class="collapse">
+  <li><a href="#factor-codings" id="toc-factor-codings" class="nav-link" data-scroll-target="#factor-codings">Factor Codings</a></li>
+  </ul></li>
+  <li><a href="#orthogonality-and-variance-inflation-factors" id="toc-orthogonality-and-variance-inflation-factors" class="nav-link" data-scroll-target="#orthogonality-and-variance-inflation-factors">Orthogonality and Variance Inflation Factors</a></li>
+  <li><a href="#shifting-and-stacking" id="toc-shifting-and-stacking" class="nav-link" data-scroll-target="#shifting-and-stacking">Shifting and Stacking</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Advanced Designs</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>John King </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 27, 2020</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p>So far, we have considered designs with just two levels per factor, which is fine for inherently binary factors. However, if our study requires us to include a factor that can take on more than two values, or even a continuous range of values, or if we suspect that the relationship between a predictor and a response is non-linear, we need a different experimental design.</p>
+<section id="introduction-and-background" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-and-background">Introduction and Background</h2>
+<p>In this chapter, we will design experiments that can accommodate factors with three or more levels (up to continuous). The designs presented in this chapter belong to two broad categories: central composite designs (CCD) and nearly orthogonal Latin hypercube (NOLH) designs. These designs are particularly useful if we find ourselves in one (or both) of the following situations:</p>
+<ol type="1">
+<li><p>We suspect there may be non-linear relationships between one or more predictors and the response variable.</p></li>
+<li><p>The levels of one or more predictors are not well known or clearly defined. This is often the case when developing requirements for a future system. For example, perhaps the Army is considering developing a new helicopter, and the developers are interested in identifying the optimal combination of speed, fuel capacity, range, and various weapon and sensor systems.</p></li>
+</ol>
+<p>For background, please read the following:</p>
+<ul>
+<li><p>From <a href="https://www.informs-sim.org/wsc15papers/187.pdf">Work Smarter, Not Harder: A Tutorial On Designing And Conducting Simulation Experiments</a> , skim Sections 1 and 2, and then carefully read Sections 3, 4, and 5.</p></li>
+<li><p>From <a href="https://nps.edu/documents/106696734/108129281/UserGuideSimExpts.pdf/6bf10d35-b507-4554-b77a-6f4a443e4025?t=1475088085000">A User’s Guide to the Brave New World of Designing Simulation Experiments</a>, read Sections 2.2 - 2.4, and all of Sections 3 and 4. Figure 1 is a nice visual guide for design selection. Note that the authors prefer designs towards the top of the figure.</p></li>
+</ul>
+<p>From the readings, you can see that there is an entire field of study regarding design generation and that the properties of the various designs make them well or poorly suited for a given study. The authors of both articles discussed gridded designs, which are simple to construct and allow for the evaluation of non-linear relationships. The main drawback of gridded designs, especially when it comes to applying them to combat simulations, is that they are very inefficient. For example, a gridded design for 10 factors at 4 levels each requires <span class="math inline">\(4^{10} = 1,048,576\)</span> design points, and due to this property we will not consider them further for AWARS applications. Instead, we’ll focus on CCDs and NOLH-based designs.</p>
+</section>
+<section id="central-composite-designs" class="level2">
+<h2 class="anchored" data-anchor-id="central-composite-designs">Central Composite Designs</h2>
+<p>To detect non-linearity in the response, at a minimum, we need to add a center point to a factorial design. One option is to add a single center point that is shared by multiple factors to minimize the number of runs. Using <code>plotly</code> to plot in three dimensions, this design is visualized as follows (this is an interactive plot, so click and drag the plot to rotate the points):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>centerPoint <span class="ot">=</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">4</span>), <span class="dv">0</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="dv">2</span>), <span class="dv">0</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">x3 =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">each=</span><span class="dv">4</span>), <span class="dv">0</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">center =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"y"</span>, <span class="dv">8</span>), <span class="st">"n"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> centerPoint, <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">color=</span><span class="sc">~</span>center, </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">'#0C4B8E'</span>, <span class="st">'#BF382A'</span>), </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">type=</span><span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'markers'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">'CCD With Center Point'</span>, <span class="at">showlegend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">scene =</span> <span class="fu">list</span>(<span class="at">camera =</span> <span class="fu">list</span>(<span class="at">eye =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="sc">-</span><span class="fl">1.0</span>, <span class="at">y =</span> <span class="fl">1.25</span>, <span class="at">z =</span> <span class="fl">0.3</span>))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-73605e280193682c6fca" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-73605e280193682c6fca">{"x":{"visdat":{"25d4245c621":["function () ","plotlyVisDat"],"25d472975c6":["function () ","data"]},"cur_data":"25d472975c6","attrs":{"25d472975c6":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"color":{},"colors":["#0C4B8E","#BF382A"],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"CCD With Center Point","showlegend":false,"scene":{"camera":{"eye":{"x":-1,"y":1.25,"z":0.3}},"xaxis":{"title":"x1"},"yaxis":{"title":"x2"},"zaxis":{"title":"x3"}},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[0],"y":[0],"z":[0],"type":"scatter3d","mode":"markers","name":"n","marker":{"color":"rgba(12,75,142,1)","line":{"color":"rgba(12,75,142,1)"}},"textfont":{"color":"rgba(12,75,142,1)"},"error_y":{"color":"rgba(12,75,142,1)"},"error_x":{"color":"rgba(12,75,142,1)"},"line":{"color":"rgba(12,75,142,1)"},"frame":null},{"x":[-1,1,-1,1,-1,1,-1,1],"y":[-1,-1,1,1,-1,-1,1,1],"z":[-1,-1,-1,-1,1,1,1,1],"type":"scatter3d","mode":"markers","name":"y","marker":{"color":"rgba(191,56,42,1)","line":{"color":"rgba(191,56,42,1)"}},"textfont":{"color":"rgba(191,56,42,1)"},"error_y":{"color":"rgba(191,56,42,1)"},"error_x":{"color":"rgba(191,56,42,1)"},"line":{"color":"rgba(191,56,42,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>This design projected on to any of the 2D faces of the cube appears as:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> centerPoint, <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">color=</span><span class="sc">~</span>center, </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">'#0C4B8E'</span>, <span class="st">'#BF382A'</span>), </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, <span class="at">size=</span><span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">'CCD With Center Point'</span>, <span class="at">showlegend =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">xaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F), <span class="at">yaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-9d810f34e4d9fb01d7e1" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-9d810f34e4d9fb01d7e1">{"x":{"visdat":{"25d41e74ab0":["function () ","plotlyVisDat"],"25d433711f91":["function () ","data"]},"cur_data":"25d433711f91","attrs":{"25d433711f91":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"color":{},"colors":["#0C4B8E","#BF382A"],"type":"scatter","mode":"markers","size":10,"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"CCD With Center Point","showlegend":false,"xaxis":{"domain":[0,1],"automargin":true,"zeroline":false,"title":"x1"},"yaxis":{"domain":[0,1],"automargin":true,"zeroline":false,"title":"x2"},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[0],"y":[0],"type":"scatter","mode":"markers","name":"n","marker":{"color":"rgba(12,75,142,1)","size":[55],"sizemode":"area","line":{"color":"rgba(12,75,142,1)"}},"textfont":{"color":"rgba(12,75,142,1)","size":55},"error_y":{"color":"rgba(12,75,142,1)","width":55},"error_x":{"color":"rgba(12,75,142,1)","width":55},"line":{"color":"rgba(12,75,142,1)","width":55},"xaxis":"x","yaxis":"y","frame":null},{"x":[-1,1,-1,1,-1,1,-1,1],"y":[-1,-1,1,1,-1,-1,1,1],"type":"scatter","mode":"markers","name":"y","marker":{"color":"rgba(191,56,42,1)","size":[55,55,55,55,55,55,55,55],"sizemode":"area","line":{"color":"rgba(191,56,42,1)"}},"textfont":{"color":"rgba(191,56,42,1)","size":55},"error_y":{"color":"rgba(191,56,42,1)","width":55},"error_x":{"color":"rgba(191,56,42,1)","width":55},"line":{"color":"rgba(191,56,42,1)","width":55},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Two considerations with this design:</p>
+<ol type="1">
+<li><p>This design contains the minimum number of design points to identify non-linear relationships. If no non-linear relationships exist, we simply continue with the modeling methods presented earlier in this tutorial.</p></li>
+<li><p>If one or more non-linear relationships exist, this design does not allow you to determine which factors are non-linear.</p></li>
+</ol>
+<p>To address #2, we need to add a point to each face of the cube, which are collectively referred to as <strong>star points</strong>. You can also think of this design as starting with a gridded design and removing unnecessary design points to make it more efficient. For comparison, a 3-factor, 3-level gridded design has <span class="math inline">\(3^{3} = 27\)</span> design points compared to 15 design points for a CCD (8 for the corners and 7 for the star). Below is the CCD with star points shown in blue and connected with black lines.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ccdGrid <span class="ot">=</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">c</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>), <span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), <span class="dv">4</span>)),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">c</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>), <span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), <span class="at">each =</span> <span class="dv">2</span>)),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x3 =</span> <span class="fu">c</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>), <span class="fu">rep</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">4</span>), <span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">star =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">'y'</span>, <span class="dv">7</span>), <span class="fu">rep</span>(<span class="st">'n'</span>,<span class="dv">8</span>)),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">line =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">'line1'</span>,<span class="dv">2</span>), <span class="fu">rep</span>(<span class="st">'line2'</span>,<span class="dv">2</span>), <span class="fu">rep</span>(<span class="st">'line3'</span>,<span class="dv">2</span>), <span class="fu">rep</span>(<span class="st">'none'</span>,<span class="dv">9</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccdGrid, <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">color=</span><span class="sc">~</span>star, </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">'#BF382A'</span>, <span class="st">'#0C4B8E'</span>), </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">type=</span><span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'markers'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccdGrid <span class="sc">%&gt;%</span> <span class="fu">filter</span>(line<span class="sc">==</span><span class="st">'line1'</span>), </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">line =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">'black'</span>, <span class="at">width =</span> <span class="dv">2</span>),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'lines'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccdGrid <span class="sc">%&gt;%</span> <span class="fu">filter</span>(line<span class="sc">==</span><span class="st">'line2'</span>), </span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">line =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">'black'</span>, <span class="at">width =</span> <span class="dv">2</span>),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'lines'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccdGrid <span class="sc">%&gt;%</span> <span class="fu">filter</span>(line<span class="sc">==</span><span class="st">'line3'</span>), </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">line =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">'black'</span>, <span class="at">width =</span> <span class="dv">2</span>),</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">type =</span> <span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'lines'</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">'Central Composite Design'</span>, <span class="at">showlegend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>         <span class="at">scene =</span> <span class="fu">list</span>(<span class="at">camera =</span> <span class="fu">list</span>(<span class="at">eye =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="sc">-</span><span class="fl">1.0</span>, <span class="at">y =</span> <span class="fl">1.25</span>, <span class="at">z =</span> <span class="fl">0.3</span>))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-01c00cf2a32019cd4c36" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-01c00cf2a32019cd4c36">{"x":{"visdat":{"25d44a494a5":["function () ","plotlyVisDat"],"25d425fe217a":["function () ","data"],"25d452e532df":["function () ","data"],"25d457e1d05":["function () ","data"],"25d46180673a":["function () ","data"]},"cur_data":"25d46180673a","attrs":{"25d425fe217a":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"color":{},"colors":["#BF382A","#0C4B8E"],"type":"scatter3d","mode":"markers","inherit":true},"25d452e532df":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","inherit":true},"25d457e1d05":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","inherit":true},"25d46180673a":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Central Composite Design","showlegend":false,"scene":{"camera":{"eye":{"x":-1,"y":1.25,"z":0.3}},"xaxis":{"title":"x1"},"yaxis":{"title":"x2"},"zaxis":{"title":"x3"}},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[-1,1,-1,1,-1,1,-1,1],"y":[-1,-1,1,1,-1,-1,1,1],"z":[-1,-1,-1,-1,1,1,1,1],"type":"scatter3d","mode":"markers","name":"n","marker":{"color":"rgba(191,56,42,1)","line":{"color":"rgba(191,56,42,1)"}},"textfont":{"color":"rgba(191,56,42,1)"},"error_y":{"color":"rgba(191,56,42,1)"},"error_x":{"color":"rgba(191,56,42,1)"},"line":{"color":"rgba(191,56,42,1)"},"frame":null},{"x":[-1,1,0,0,0,0,0],"y":[0,0,-1,1,0,0,0],"z":[0,0,0,0,-1,1,0],"type":"scatter3d","mode":"markers","name":"y","marker":{"color":"rgba(12,75,142,1)","line":{"color":"rgba(12,75,142,1)"}},"textfont":{"color":"rgba(12,75,142,1)"},"error_y":{"color":"rgba(12,75,142,1)"},"error_x":{"color":"rgba(12,75,142,1)"},"line":{"color":"rgba(12,75,142,1)"},"frame":null},{"x":[-1,1],"y":[0,0],"z":[0,0],"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"frame":null},{"x":[0,0],"y":[-1,1],"z":[0,0],"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","marker":{"color":"rgba(214,39,40,1)","line":{"color":"rgba(214,39,40,1)"}},"error_y":{"color":"rgba(214,39,40,1)"},"error_x":{"color":"rgba(214,39,40,1)"},"frame":null},{"x":[0,0],"y":[0,0],"z":[-1,1],"line":{"color":"black","width":2},"type":"scatter3d","mode":"lines","marker":{"color":"rgba(148,103,189,1)","line":{"color":"rgba(148,103,189,1)"}},"error_y":{"color":"rgba(148,103,189,1)"},"error_x":{"color":"rgba(148,103,189,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<section id="augmented-central-composite-designs" class="level3">
+<h3 class="anchored" data-anchor-id="augmented-central-composite-designs">Augmented Central Composite Designs</h3>
+<p>The design generated above can be used to identify several kinds of non-linear relationships, <span class="math inline">\(log(x)\)</span>, <span class="math inline">\(e^x\)</span>, <span class="math inline">\(1/x\)</span>, and <span class="math inline">\(x^2\)</span>. It can not, however, be used to identify trends with more than one bend in the curve (e.g., <span class="math inline">\(x^3\)</span>). The CCD generated above can be further augmented with additional design points to either capture higher order relationships or to obtain additional data for use in response surface methodology (presented later in this section). Additionally, since these designs are increasing in complexity, we will make use of the <code>rsm</code> package to generate them.</p>
+<p>To get a feel for the <code>rsm</code> package, we’ll re-generate the CCD with the star points as in the previous section. According to the documentation, the preferred method for generating this design is to follow a two-step process. First, we generate the corner points with <code>cube()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rsm)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>cu <span class="ot">=</span> <span class="fu">cube</span>(<span class="dv">3</span>, <span class="at">n0=</span><span class="dv">0</span>) <span class="co"># 3 factors and 0 center points</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>cu</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["run.order"],"name":[1],"type":["int"],"align":["right"]},{"label":["std.order"],"name":[2],"type":["int"],"align":["right"]},{"label":["x1"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["x2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x3"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"8","3":"1","4":"1","5":"1","_rn_":"1"},{"1":"2","2":"1","3":"-1","4":"-1","5":"-1","_rn_":"2"},{"1":"3","2":"4","3":"1","4":"1","5":"-1","_rn_":"3"},{"1":"4","2":"6","3":"1","4":"-1","5":"1","_rn_":"4"},{"1":"5","2":"2","3":"1","4":"-1","5":"-1","_rn_":"5"},{"1":"6","2":"7","3":"-1","4":"1","5":"1","_rn_":"6"},{"1":"7","2":"3","3":"-1","4":"1","5":"-1","_rn_":"7"},{"1":"8","2":"5","3":"-1","4":"-1","5":"1","_rn_":"8"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Then we combine the cube points using <code>djoin()</code> with the star points using <code>star()</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># alpha = 1 generates the "face" points, n0 gives the central point</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ccd <span class="ot">=</span> <span class="fu">djoin</span>(cu, <span class="fu">star</span>(<span class="at">alpha=</span><span class="dv">1</span>, <span class="at">n0=</span><span class="dv">1</span>)) </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ccd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["run.order"],"name":[1],"type":["int"],"align":["right"]},{"label":["std.order"],"name":[2],"type":["int"],"align":["right"]},{"label":["x1"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["x2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x3"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Block"],"name":[6],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"8","3":"1","4":"1","5":"1","6":"1"},{"1":"2","2":"1","3":"-1","4":"-1","5":"-1","6":"1"},{"1":"3","2":"4","3":"1","4":"1","5":"-1","6":"1"},{"1":"4","2":"6","3":"1","4":"-1","5":"1","6":"1"},{"1":"5","2":"2","3":"1","4":"-1","5":"-1","6":"1"},{"1":"6","2":"7","3":"-1","4":"1","5":"1","6":"1"},{"1":"7","2":"3","3":"-1","4":"1","5":"-1","6":"1"},{"1":"8","2":"5","3":"-1","4":"-1","5":"1","6":"1"},{"1":"1","2":"6","3":"0","4":"0","5":"1","6":"2"},{"1":"2","2":"1","3":"-1","4":"0","5":"0","6":"2"},{"1":"3","2":"5","3":"0","4":"0","5":"-1","6":"2"},{"1":"4","2":"7","3":"0","4":"0","5":"0","6":"2"},{"1":"5","2":"2","3":"1","4":"0","5":"0","6":"2"},{"1":"6","2":"4","3":"0","4":"1","5":"0","6":"2"},{"1":"7","2":"3","3":"0","4":"-1","5":"0","6":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Plotting this design demonstrates that it’s equivalent to what we produced manually.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccd, <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2, <span class="at">z =</span> <span class="sc">~</span>x3, </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">color=</span><span class="sc">~</span>Block, <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">'#BF382A'</span>, <span class="st">'#0C4B8E'</span>), </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">type=</span><span class="st">'scatter3d'</span>, <span class="at">mode=</span><span class="st">'markers'</span>)<span class="sc">%&gt;%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">'rsm Central Composite Design'</span>, <span class="at">showlegend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">scene =</span> <span class="fu">list</span>(<span class="at">camera =</span> <span class="fu">list</span>(<span class="at">eye =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="sc">-</span><span class="fl">1.0</span>, <span class="at">y =</span> <span class="fl">1.25</span>, <span class="at">z =</span> <span class="fl">0.3</span>))))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-4d64fa74e5c899836c46" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-4d64fa74e5c899836c46">{"x":{"visdat":{"25d47dfd23f9":["function () ","plotlyVisDat"],"25d438cd2648":["function () ","data"]},"cur_data":"25d438cd2648","attrs":{"25d438cd2648":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"color":{},"colors":["#BF382A","#0C4B8E"],"type":"scatter3d","mode":"markers","inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"rsm Central Composite Design","showlegend":false,"scene":{"camera":{"eye":{"x":-1,"y":1.25,"z":0.3}},"xaxis":{"title":"x1"},"yaxis":{"title":"x2"},"zaxis":{"title":"x3"}},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[1,-1,1,1,1,-1,-1,-1],"y":[1,-1,1,-1,-1,1,1,-1],"z":[1,-1,-1,1,-1,1,-1,1],"type":"scatter3d","mode":"markers","name":"1","marker":{"color":"rgba(191,56,42,1)","line":{"color":"rgba(191,56,42,1)"}},"textfont":{"color":"rgba(191,56,42,1)"},"error_y":{"color":"rgba(191,56,42,1)"},"error_x":{"color":"rgba(191,56,42,1)"},"line":{"color":"rgba(191,56,42,1)"},"frame":null},{"x":[0,-1,0,0,1,0,0],"y":[0,0,0,0,0,1,-1],"z":[1,0,-1,0,0,0,0],"type":"scatter3d","mode":"markers","name":"2","marker":{"color":"rgba(12,75,142,1)","line":{"color":"rgba(12,75,142,1)"}},"textfont":{"color":"rgba(12,75,142,1)"},"error_y":{"color":"rgba(12,75,142,1)"},"error_x":{"color":"rgba(12,75,142,1)"},"line":{"color":"rgba(12,75,142,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>An interesting feature of the CCD we just generated is that we can modify it slightly to accommodate additional factor levels without increasing the number of design points. We can do this by moving the corner points closer to the central point. In a <strong>spherical design</strong> as shown below, the corner point at <span class="math inline">\((1 ,1)\)</span> moves to <span class="math inline">\((1/\sqrt{k}, 1/\sqrt{k})\)</span> where <span class="math inline">\(k\)</span> is the number of factors in the design. Since <span class="math inline">\(1/\sqrt{3} = 0.577\)</span>, the new point becomes <span class="math inline">\((0.577, 0.577)\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cu2 <span class="ot">=</span> <span class="fu">cube</span>(<span class="dv">3</span>, <span class="at">n0=</span><span class="dv">0</span>, <span class="at">inscribed =</span> <span class="cn">TRUE</span>)  <span class="co"># inscribed limits the axis points to +/- 1</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ccd_s <span class="ot">=</span> <span class="fu">djoin</span>(cu2, <span class="fu">star</span>(<span class="at">alpha=</span><span class="st">"spherical"</span>, <span class="at">n0=</span><span class="dv">1</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pt <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span><span class="fl">0.6</span>, <span class="at">y =</span> <span class="fl">0.6</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> ccd_s, <span class="at">x =</span> <span class="sc">~</span>x1, <span class="at">y =</span> <span class="sc">~</span>x2,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">color=</span><span class="sc">~</span>Block, <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">'#BF382A'</span>, <span class="st">'#0C4B8E'</span>), </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, <span class="at">size =</span><span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_annotations</span>(<span class="at">data=</span>pt, <span class="at">ax=</span><span class="dv">1</span>, <span class="at">ay=</span><span class="dv">1</span>, <span class="at">axref=</span><span class="st">"x"</span>, <span class="at">ayref=</span><span class="st">"y"</span>, <span class="at">x=</span>pt<span class="sc">$</span>x, <span class="at">y=</span>pt<span class="sc">$</span>y, <span class="at">text=</span><span class="st">"Moved Point"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">'Spherical Design'</span>, <span class="at">showlegend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">xaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F), <span class="at">yaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-998205c3a79f8518f914" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-998205c3a79f8518f914">{"x":{"visdat":{"25d432227b63":["function () ","plotlyVisDat"],"25d49b71710":["function () ","data"],"25d425bd569f":["function () ","data"]},"cur_data":"25d425bd569f","attrs":{"25d49b71710":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"color":{},"colors":["#BF382A","#0C4B8E"],"type":"scatter","mode":"markers","size":10,"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"annotations":[{"text":"Moved Point","ax":1,"ay":1,"axref":"x","ayref":"y","x":0.6,"y":0.6}],"title":"Spherical Design","showlegend":false,"xaxis":{"domain":[0,1],"automargin":true,"zeroline":false,"title":"x1"},"yaxis":{"domain":[0,1],"automargin":true,"zeroline":false,"title":"x2"},"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[-0.577350269189626,0.577350269189626,-0.577350269189626,-0.577350269189626,0.577350269189626,0.577350269189626,-0.577350269189626,0.577350269189626],"y":[0.577350269189626,-0.577350269189626,-0.577350269189626,-0.577350269189626,0.577350269189626,-0.577350269189626,0.577350269189626,0.577350269189626],"type":"scatter","mode":"markers","name":"1","marker":{"color":"rgba(191,56,42,1)","size":[55,55,55,55,55,55,55,55],"sizemode":"area","line":{"color":"rgba(191,56,42,1)"}},"textfont":{"color":"rgba(191,56,42,1)","size":55},"error_y":{"color":"rgba(191,56,42,1)","width":55},"error_x":{"color":"rgba(191,56,42,1)","width":55},"line":{"color":"rgba(191,56,42,1)","width":55},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,-1,0,0,1,0,0],"y":[1,0,0,-1,0,0,0],"type":"scatter","mode":"markers","name":"2","marker":{"color":"rgba(12,75,142,1)","size":[55,55,55,55,55,55,55],"sizemode":"area","line":{"color":"rgba(12,75,142,1)"}},"textfont":{"color":"rgba(12,75,142,1)","size":55},"error_y":{"color":"rgba(12,75,142,1)","width":55},"error_x":{"color":"rgba(12,75,142,1)","width":55},"line":{"color":"rgba(12,75,142,1)","width":55},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Below, we see that the design still consists of 15 design points, and each factor has levels of -1.0, -0.58, 0, 0.58, and 1.0. Clearly, this is much more efficient than a gridded design, which would have <span class="math inline">\(5^3 = 125\)</span> design points.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ccd_s</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["run.order"],"name":[1],"type":["int"],"align":["right"]},{"label":["std.order"],"name":[2],"type":["int"],"align":["right"]},{"label":["x1"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["x2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x3"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Block"],"name":[6],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"3","3":"-0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"2","2":"6","3":"0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"3","2":"1","3":"-0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"4","2":"5","3":"-0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"5","2":"8","3":"0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"6","2":"2","3":"0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"7","2":"7","3":"-0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"8","2":"4","3":"0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"1","2":"4","3":"0.0000000","4":"1.0000000","5":"0.0000000","6":"2"},{"1":"2","2":"1","3":"-1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"3","2":"5","3":"0.0000000","4":"0.0000000","5":"-1.0000000","6":"2"},{"1":"4","2":"3","3":"0.0000000","4":"-1.0000000","5":"0.0000000","6":"2"},{"1":"5","2":"2","3":"1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"6","2":"6","3":"0.0000000","4":"0.0000000","5":"1.0000000","6":"2"},{"1":"7","2":"7","3":"0.0000000","4":"0.0000000","5":"0.0000000","6":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Notice that although the design consists of five levels for each factor, the number of design points at each level varies. For example, <code>x1</code> at levels -1 and 1 are only represented once each in the design matrix, whereas <code>x1</code> at level 0 is represented 5 times. Therefore, if multiple measurements at the extreme high and low ranges of the factor ranges is important, a standard CCD is a better choice than a spherical design. Alternatively, the spherical design can be replicated using the <code>dupe()</code> function to provide an additional design point at the extreme high and low factor levels.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">djoin</span>(ccd_s, <span class="fu">dupe</span>(ccd_s))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["run.order"],"name":[1],"type":["int"],"align":["right"]},{"label":["std.order"],"name":[2],"type":["int"],"align":["right"]},{"label":["x1"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["x2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x3"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Block"],"name":[6],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"3","3":"-0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"2","2":"6","3":"0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"3","2":"1","3":"-0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"4","2":"5","3":"-0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"5","2":"8","3":"0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"6","2":"2","3":"0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"7","2":"7","3":"-0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"8","2":"4","3":"0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"1","2":"4","3":"0.0000000","4":"1.0000000","5":"0.0000000","6":"2"},{"1":"2","2":"1","3":"-1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"3","2":"5","3":"0.0000000","4":"0.0000000","5":"-1.0000000","6":"2"},{"1":"4","2":"3","3":"0.0000000","4":"-1.0000000","5":"0.0000000","6":"2"},{"1":"5","2":"2","3":"1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"6","2":"6","3":"0.0000000","4":"0.0000000","5":"1.0000000","6":"2"},{"1":"7","2":"7","3":"0.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"1","2":"3","3":"-0.5773503","4":"0.5773503","5":"-0.5773503","6":"3"},{"1":"2","2":"7","3":"-0.5773503","4":"0.5773503","5":"0.5773503","6":"3"},{"1":"3","2":"4","3":"0.5773503","4":"0.5773503","5":"-0.5773503","6":"3"},{"1":"4","2":"1","3":"-0.5773503","4":"-0.5773503","5":"-0.5773503","6":"3"},{"1":"5","2":"2","3":"0.5773503","4":"-0.5773503","5":"-0.5773503","6":"3"},{"1":"6","2":"5","3":"-0.5773503","4":"-0.5773503","5":"0.5773503","6":"3"},{"1":"7","2":"8","3":"0.5773503","4":"0.5773503","5":"0.5773503","6":"3"},{"1":"8","2":"6","3":"0.5773503","4":"-0.5773503","5":"0.5773503","6":"3"},{"1":"1","2":"6","3":"0.0000000","4":"0.0000000","5":"1.0000000","6":"4"},{"1":"2","2":"1","3":"-1.0000000","4":"0.0000000","5":"0.0000000","6":"4"},{"1":"3","2":"5","3":"0.0000000","4":"0.0000000","5":"-1.0000000","6":"4"},{"1":"4","2":"3","3":"0.0000000","4":"-1.0000000","5":"0.0000000","6":"4"},{"1":"5","2":"7","3":"0.0000000","4":"0.0000000","5":"0.0000000","6":"4"},{"1":"6","2":"2","3":"1.0000000","4":"0.0000000","5":"0.0000000","6":"4"},{"1":"7","2":"4","3":"0.0000000","4":"1.0000000","5":"0.0000000","6":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="response-surface-methodology" class="level2">
+<h2 class="anchored" data-anchor-id="response-surface-methodology">Response Surface Methodology</h2>
+<p>As mentioned in the introduction, suppose we are interested in assisting with developing requirements for a future Army helicopter. For simplicity, say we’re only interested in determining how speed, stealth, and sensor range contribute to lethality (measured in the number of kills achieved by the helicopter). One can imagine that a low amount of stealth might result in few kills. As stealth increases, we would expect the number of kills to increase, but it may also be that increasing stealth beyond some threshold might begin to reduce the number of kills - perhaps the pilot spends so much effort remaining stealthy, that it becomes difficult to detect and engage targets. In this case, there is some optimal combination stealth, speed and sensor range that produces the greatest number of kills, and this optimal combination is not the maximum levels of each factor. Response surface methodology in conjunction with efficient experimental design can be applied in a situation like this to identify the optimal combination of factor levels.</p>
+<p>For our example, we will consider the following ranges of predictor values:</p>
+<ul>
+<li>Speed ranges from 100 to 300 km/hr.</li>
+<li>Stealth ranges from 0, which represents no stealth, to 1, which represents full ninja.</li>
+<li>Sensor detection ranges from 5 to 15 km.</li>
+</ul>
+<p>Response surface methodology involves plotting pairs of factors on the x and y axes and the response on the z axis. We can accomplish this using either a contour or a 3D plot. Since we don’t know what the optimal factor values are, ideally, we’d like to evaluate as many factor value combinations as possible. One consideration when choosing a design for this purpose is the design’s <strong>space-filling properties</strong>, which is demonstrated in the following plots using just speed and stealth. From left to right, the space-filling properties of the designs improve, which means that if the optimal values for speed and stealth are 261 and 0.81 (shown in red on the plots), respectively, then the design on the right will most accurately identify these optimal values.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ss3 <span class="ot">=</span> <span class="fu">expand_grid</span>(<span class="at">speed=</span><span class="fu">seq</span>(<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">100</span>), <span class="at">stealth=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.5</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>ss5 <span class="ot">=</span> <span class="fu">expand_grid</span>(<span class="at">speed=</span><span class="fu">seq</span>(<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">50</span>), <span class="at">stealth=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.25</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>ss10<span class="ot">=</span> <span class="fu">expand_grid</span>(<span class="at">speed=</span><span class="fu">seq</span>(<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">20</span>), <span class="at">stealth=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.1</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>get_plot <span class="ot">=</span> <span class="cf">function</span>(df){</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> df, <span class="at">x=</span><span class="sc">~</span>speed, <span class="at">y=</span><span class="sc">~</span>stealth, <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">marker=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">'black'</span>, <span class="at">size=</span><span class="dv">5</span>), <span class="at">showlegend=</span><span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">x=</span><span class="dv">261</span>, <span class="at">y=</span><span class="fl">0.81</span>, <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">marker=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">'red'</span>, <span class="at">size=</span><span class="dv">5</span>), <span class="at">showlegend=</span><span class="cn">FALSE</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">=</span> <span class="fu">get_plot</span>(ss3)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>f2 <span class="ot">=</span> <span class="fu">get_plot</span>(ss5)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>f3 <span class="ot">=</span> <span class="fu">get_plot</span>(ss10)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="fu">subplot</span>(f1, f2, f3, <span class="at">heights=</span><span class="fl">0.5</span>, <span class="at">shareY =</span> <span class="cn">TRUE</span>, <span class="at">shareX=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">xaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F), <span class="at">yaxis=</span><span class="fu">list</span>(<span class="at">zeroline=</span>F))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-e3232c98e139984c48ca" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-e3232c98e139984c48ca">{"x":{"data":[{"x":[100,100,100,200,200,200,300,300,300],"y":[0,0.5,1,0,0.5,1,0,0.5,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(31,119,180,1)"}},"showlegend":false,"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(255,127,14,1)"}},"showlegend":false,"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[100,100,100,100,100,150,150,150,150,150,200,200,200,200,200,250,250,250,250,250,300,300,300,300,300],"y":[0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(44,160,44,1)"}},"showlegend":false,"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(214,39,40,1)"}},"showlegend":false,"error_y":{"color":"rgba(214,39,40,1)"},"error_x":{"color":"rgba(214,39,40,1)"},"line":{"color":"rgba(214,39,40,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"x":[100,100,100,100,100,100,100,100,100,100,100,120,120,120,120,120,120,120,120,120,120,120,140,140,140,140,140,140,140,140,140,140,140,160,160,160,160,160,160,160,160,160,160,160,180,180,180,180,180,180,180,180,180,180,180,200,200,200,200,200,200,200,200,200,200,200,220,220,220,220,220,220,220,220,220,220,220,240,240,240,240,240,240,240,240,240,240,240,260,260,260,260,260,260,260,260,260,260,260,280,280,280,280,280,280,280,280,280,280,280,300,300,300,300,300,300,300,300,300,300,300],"y":[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(148,103,189,1)"}},"showlegend":false,"error_y":{"color":"rgba(148,103,189,1)"},"error_x":{"color":"rgba(148,103,189,1)"},"line":{"color":"rgba(148,103,189,1)"},"xaxis":"x3","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(140,86,75,1)"}},"showlegend":false,"error_y":{"color":"rgba(140,86,75,1)"},"error_x":{"color":"rgba(140,86,75,1)"},"line":{"color":"rgba(140,86,75,1)"},"xaxis":"x3","yaxis":"y","frame":null}],"layout":{"xaxis":{"domain":[0,0.313333333333333],"automargin":true,"title":"speed","anchor":"y","zeroline":false},"xaxis2":{"domain":[0.353333333333333,0.646666666666667],"automargin":true,"title":"speed","anchor":"y"},"xaxis3":{"domain":[0.686666666666667,1],"automargin":true,"title":"speed","anchor":"y"},"yaxis":{"domain":[0.25,0.75],"automargin":true,"title":"stealth","anchor":"x","zeroline":false},"annotations":[],"shapes":[],"images":[],"margin":{"b":40,"l":60,"t":25,"r":10},"hovermode":"closest","showlegend":false},"attrs":{"25d47c45953":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d47c45953.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true},"25d47a22352f":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d47a22352f.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true},"25d424c512b0":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d424c512b0.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>If we were to use the designs that generated for the above three plots in a simulation, then we could measure the response variable for each factor value combination to produce the following three response surfaces.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>get_kills <span class="ot">=</span> <span class="cf">function</span>(df){</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">kills =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  stealth<span class="sc">&lt;=</span><span class="fl">0.81</span> <span class="sc">&amp;</span> speed<span class="sc">&lt;=</span><span class="dv">261</span> <span class="sc">~</span> <span class="dv">3</span><span class="sc">*</span>stealth <span class="sc">+</span> speed<span class="sc">/</span><span class="dv">100</span>, </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  stealth<span class="sc">&lt;=</span><span class="fl">0.81</span> <span class="sc">&amp;</span> speed<span class="sc">&gt;</span><span class="dv">261</span> <span class="sc">~</span><span class="dv">600</span><span class="sc">/</span>speed,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  stealth<span class="sc">&gt;</span><span class="fl">0.81</span> <span class="sc">&amp;</span> speed<span class="sc">&gt;</span><span class="dv">261</span> <span class="sc">~</span> stealth<span class="sc">/</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">400</span><span class="sc">/</span>speed,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  stealth<span class="sc">&gt;</span><span class="fl">0.81</span> <span class="sc">&amp;</span> speed<span class="sc">&lt;</span><span class="dv">261</span> <span class="sc">~</span> stealth<span class="sc">/</span><span class="dv">2</span> <span class="sc">+</span> speed<span class="sc">/</span><span class="dv">100</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>ss3 <span class="ot">=</span> <span class="fu">get_kills</span>(ss3)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>ss5 <span class="ot">=</span> <span class="fu">get_kills</span>(ss5)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>ss10 <span class="ot">=</span> <span class="fu">get_kills</span>(ss10)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>get_contours <span class="ot">=</span> <span class="cf">function</span>(df){</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_ly</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> df, <span class="at">x=</span><span class="sc">~</span>speed, <span class="at">y=</span><span class="sc">~</span>stealth, <span class="at">z=</span><span class="sc">~</span>kills, <span class="at">type =</span> <span class="st">"contour"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">data =</span> df, <span class="at">x=</span><span class="sc">~</span>speed, <span class="at">y=</span><span class="sc">~</span>stealth, <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, </span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">marker=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">'black'</span>, <span class="at">size=</span><span class="dv">5</span>), <span class="at">showlegend=</span><span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_trace</span>(<span class="at">x=</span><span class="dv">261</span>, <span class="at">y=</span><span class="fl">0.81</span>, <span class="at">type=</span><span class="st">'scatter'</span>, <span class="at">mode=</span><span class="st">'markers'</span>, </span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">marker=</span><span class="fu">list</span>(<span class="at">color=</span><span class="st">'red'</span>, <span class="at">size=</span><span class="dv">5</span>), <span class="at">showlegend=</span><span class="cn">FALSE</span>)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">=</span> <span class="fu">get_contours</span>(ss3)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>f2 <span class="ot">=</span> <span class="fu">get_contours</span>(ss5)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>f3 <span class="ot">=</span> <span class="fu">get_contours</span>(ss10)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="fu">subplot</span>(f1, f2, f3, <span class="at">heights=</span><span class="fl">0.5</span>, <span class="at">shareY =</span> <span class="cn">TRUE</span>, <span class="at">shareX=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-588c20638459c32822f8" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-588c20638459c32822f8">{"x":{"data":[{"colorbar":{"title":"kills","ticklen":2,"len":0.25,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"x":[100,100,100,200,200,200,300,300,300],"y":[0,0.5,1,0,0.5,1,0,0.5,1],"z":[1,2.5,1.5,2,3.5,2.5,2,2,1.83333333333333],"type":"contour","line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[100,100,100,200,200,200,300,300,300],"y":[0,0.5,1,0,0.5,1,0,0.5,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(255,127,14,1)"}},"showlegend":false,"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(44,160,44,1)"}},"showlegend":false,"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null},{"colorbar":{"title":"kills","ticklen":2,"len":0.25,"lenmode":"fraction","y":0.75,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"x":[100,100,100,100,100,150,150,150,150,150,200,200,200,200,200,250,250,250,250,250,300,300,300,300,300],"y":[0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1],"z":[1,1.75,2.5,3.25,1.5,1.5,2.25,3,3.75,2,2,2.75,3.5,4.25,2.5,2.5,3.25,4,4.75,3,2,2,2,2,1.83333333333333],"type":"contour","line":{"color":"rgba(214,39,40,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"x":[100,100,100,100,100,150,150,150,150,150,200,200,200,200,200,250,250,250,250,250,300,300,300,300,300],"y":[0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1,0,0.25,0.5,0.75,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(148,103,189,1)"}},"showlegend":false,"error_y":{"color":"rgba(148,103,189,1)"},"error_x":{"color":"rgba(148,103,189,1)"},"line":{"color":"rgba(148,103,189,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(140,86,75,1)"}},"showlegend":false,"error_y":{"color":"rgba(140,86,75,1)"},"error_x":{"color":"rgba(140,86,75,1)"},"line":{"color":"rgba(140,86,75,1)"},"xaxis":"x2","yaxis":"y","frame":null},{"colorbar":{"title":"kills","ticklen":2,"len":0.25,"lenmode":"fraction","y":0.5,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"x":[100,100,100,100,100,100,100,100,100,100,100,120,120,120,120,120,120,120,120,120,120,120,140,140,140,140,140,140,140,140,140,140,140,160,160,160,160,160,160,160,160,160,160,160,180,180,180,180,180,180,180,180,180,180,180,200,200,200,200,200,200,200,200,200,200,200,220,220,220,220,220,220,220,220,220,220,220,240,240,240,240,240,240,240,240,240,240,240,260,260,260,260,260,260,260,260,260,260,260,280,280,280,280,280,280,280,280,280,280,280,300,300,300,300,300,300,300,300,300,300,300],"y":[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],"z":[1,1.3,1.6,1.9,2.2,2.5,2.8,3.1,3.4,1.45,1.5,1.2,1.5,1.8,2.1,2.4,2.7,3,3.3,3.6,1.65,1.7,1.4,1.7,2,2.3,2.6,2.9,3.2,3.5,3.8,1.85,1.9,1.6,1.9,2.2,2.5,2.8,3.1,3.4,3.7,4,2.05,2.1,1.8,2.1,2.4,2.7,3,3.3,3.6,3.9,4.2,2.25,2.3,2,2.3,2.6,2.9,3.2,3.5,3.8,4.1,4.4,2.45,2.5,2.2,2.5,2.8,3.1,3.4,3.7,4,4.3,4.6,2.65,2.7,2.4,2.7,3,3.3,3.6,3.9,4.2,4.5,4.8,2.85,2.9,2.6,2.9,3.2,3.5,3.8,4.1,4.4,4.7,5,3.05,3.1,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,2.14285714285714,1.87857142857143,1.92857142857143,2,2,2,2,2,2,2,2,2,1.78333333333333,1.83333333333333],"type":"contour","line":{"color":"rgba(227,119,194,1)"},"xaxis":"x3","yaxis":"y","frame":null},{"x":[100,100,100,100,100,100,100,100,100,100,100,120,120,120,120,120,120,120,120,120,120,120,140,140,140,140,140,140,140,140,140,140,140,160,160,160,160,160,160,160,160,160,160,160,180,180,180,180,180,180,180,180,180,180,180,200,200,200,200,200,200,200,200,200,200,200,220,220,220,220,220,220,220,220,220,220,220,240,240,240,240,240,240,240,240,240,240,240,260,260,260,260,260,260,260,260,260,260,260,280,280,280,280,280,280,280,280,280,280,280,300,300,300,300,300,300,300,300,300,300,300],"y":[0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(127,127,127,1)"}},"showlegend":false,"error_y":{"color":"rgba(127,127,127,1)"},"error_x":{"color":"rgba(127,127,127,1)"},"line":{"color":"rgba(127,127,127,1)"},"xaxis":"x3","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(188,189,34,1)"}},"showlegend":false,"error_y":{"color":"rgba(188,189,34,1)"},"error_x":{"color":"rgba(188,189,34,1)"},"line":{"color":"rgba(188,189,34,1)"},"xaxis":"x3","yaxis":"y","frame":null}],"layout":{"xaxis":{"domain":[0,0.313333333333333],"automargin":true,"title":"speed","anchor":"y"},"xaxis2":{"domain":[0.353333333333333,0.646666666666667],"automargin":true,"title":"speed","anchor":"y"},"xaxis3":{"domain":[0.686666666666667,1],"automargin":true,"title":"speed","anchor":"y"},"yaxis":{"domain":[0.25,0.75],"automargin":true,"title":"stealth","anchor":"x"},"annotations":[],"shapes":[],"images":[],"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"zaxis":{"title":"kills"}},"hovermode":"closest","showlegend":true,"legend":{"yanchor":"top","y":0.25}},"attrs":{"25d413f95b9c":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"type":"contour","inherit":true},"25d440994ac8":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d440994ac8.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true},"25d4270856d5":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"type":"contour","inherit":true},"25d4370412c4":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d4370412c4.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true},"25d45dea3dbc":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"type":"contour","inherit":true},"25d42a2973bc":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d42a2973bc.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>Given the above three plots, if you didn’t know the true optimal values for speed and stealth, clearly the plot on the right with the best space-filling properties provides the best estimates. To determine the optimal values from the plot, we simply find the speed and stealth values that result in the maximum number of kills, which appears to be approximately speed = 220 and stealth = 0.70. The 2D contour plot on the right can also be plotted as a 3D surface, as shown below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>killz <span class="ot">=</span> <span class="fu">as.matrix</span>(ss10 <span class="sc">%&gt;%</span> <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> speed, <span class="at">values_from =</span> kills))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(<span class="at">z=</span><span class="sc">~</span>killz) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_surface</span>(<span class="at">contours =</span> <span class="fu">list</span>(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">z =</span> <span class="fu">list</span>(<span class="at">show =</span> <span class="cn">TRUE</span>)), <span class="at">z =</span> <span class="sc">~</span>killz) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"3D Response Surface"</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">scene =</span> <span class="fu">list</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">xaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"Speed"</span>),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">yaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"Stealth"</span>),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">zaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"Kills"</span>, <span class="at">nticks=</span><span class="dv">10</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-6c89e7430e35dc5868c0" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-6c89e7430e35dc5868c0">{"x":{"visdat":{"25d4339458b":["function () ","plotlyVisDat"]},"cur_data":"25d4339458b","attrs":{"25d4339458b":{"z":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","contours":{"z":{"show":true}},"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"3D Response Surface","scene":{"xaxis":{"title":"Speed"},"yaxis":{"title":"Stealth"},"zaxis":{"title":"Kills","nticks":10}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"killz","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"z":[[0,1,1.2,1.4,1.6,1.8,2,2.2,2.4,2.6,2.14285714285714,2],[0.1,1.3,1.5,1.7,1.9,2.1,2.3,2.5,2.7,2.9,2.14285714285714,2],[0.2,1.6,1.8,2,2.2,2.4,2.6,2.8,3,3.2,2.14285714285714,2],[0.3,1.9,2.1,2.3,2.5,2.7,2.9,3.1,3.3,3.5,2.14285714285714,2],[0.4,2.2,2.4,2.6,2.8,3,3.2,3.4,3.6,3.8,2.14285714285714,2],[0.5,2.5,2.7,2.9,3.1,3.3,3.5,3.7,3.9,4.1,2.14285714285714,2],[0.6,2.8,3,3.2,3.4,3.6,3.8,4,4.2,4.4,2.14285714285714,2],[0.7,3.1,3.3,3.5,3.7,3.9,4.1,4.3,4.5,4.7,2.14285714285714,2],[0.8,3.4,3.6,3.8,4,4.2,4.4,4.6,4.8,5,2.14285714285714,2],[0.9,1.45,1.65,1.85,2.05,2.25,2.45,2.65,2.85,3.05,1.87857142857143,1.78333333333333],[1,1.5,1.7,1.9,2.1,2.3,2.5,2.7,2.9,3.1,1.92857142857143,1.83333333333333]],"type":"surface","contours":{"z":{"show":true}},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<p>The designs for the plots above are gridded designs, which we’ve demonstrated to be inefficient. Therefore, we’ll replace the gridded design with a spherical CCD.</p>
+<p>When creating the design matrix with the <code>rsm</code> functions, we can convert the default factor codings into the ranges we’re interested in using the formulas shown in the following code chunk. We set the ranges of the factor levels using the <code>coding</code> parameter. The formula <code>(speed-200)/100</code> centers the <code>speed</code> factor on 200 and varies it by +/- 100.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>helo <span class="ot">=</span> <span class="fu">cube</span>(<span class="dv">3</span>,                        <span class="co"># 3 factors</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">n0=</span><span class="dv">0</span>,                     <span class="co"># no center point to the cube</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">inscribed=</span><span class="cn">TRUE</span>,           <span class="co"># required when using alpha="spherical"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">coding =</span> <span class="fu">list</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>              x1<span class="sc">~</span>(speed<span class="dv">-200</span>)<span class="sc">/</span><span class="dv">100</span>,     <span class="co"># center on 200 and vary by 100</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>              x2<span class="sc">~</span>(stealth<span class="fl">-0.5</span>)<span class="sc">/</span><span class="fl">0.5</span>,   <span class="co"># center on 0.5 and vary by 0.5</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>              x3<span class="sc">~</span>(sensor<span class="dv">-10</span>)<span class="sc">/</span><span class="dv">5</span>))      <span class="co"># center on 10 and vary by 5</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>helo <span class="ot">=</span> <span class="fu">djoin</span>(helo,                    <span class="co"># join the cube with the star points</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>             <span class="fu">star</span>(<span class="at">alpha=</span><span class="st">"spherical"</span>,  <span class="co"># brings corner points in</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">n0=</span><span class="dv">1</span>))              <span class="co"># add a center point to the star</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>helo</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["run.order"],"name":[1],"type":["int"],"align":["right"]},{"label":["std.order"],"name":[2],"type":["int"],"align":["right"]},{"label":["x1"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["x2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["x3"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Block"],"name":[6],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"2","3":"0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"2","2":"7","3":"-0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"3","2":"8","3":"0.5773503","4":"0.5773503","5":"0.5773503","6":"1"},{"1":"4","2":"1","3":"-0.5773503","4":"-0.5773503","5":"-0.5773503","6":"1"},{"1":"5","2":"4","3":"0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"6","2":"5","3":"-0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"7","2":"3","3":"-0.5773503","4":"0.5773503","5":"-0.5773503","6":"1"},{"1":"8","2":"6","3":"0.5773503","4":"-0.5773503","5":"0.5773503","6":"1"},{"1":"1","2":"1","3":"-1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"2","2":"2","3":"1.0000000","4":"0.0000000","5":"0.0000000","6":"2"},{"1":"3","2":"3","3":"0.0000000","4":"-1.0000000","5":"0.0000000","6":"2"},{"1":"4","2":"5","3":"0.0000000","4":"0.0000000","5":"-1.0000000","6":"2"},{"1":"5","2":"6","3":"0.0000000","4":"0.0000000","5":"1.0000000","6":"2"},{"1":"6","2":"4","3":"0.0000000","4":"1.0000000","5":"0.0000000","6":"2"},{"1":"7","2":"7","3":"0.0000000","4":"0.0000000","5":"0.0000000","6":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>Oddly (to me, anyway), this doesn’t preserve the factor names and coded values as shown above. For example, <code>helo$speed</code> doesn’t exist.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>helo<span class="sc">$</span>speed    <span class="co"># doesn't exist</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(helo)   <span class="co"># what does exist?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "run.order" "std.order" "x1"        "x2"        "x3"        "Block"    </code></pre>
+</div>
+</div>
+<p>To get the factor names and coded values, we must use <code>decode.data()</code> as shown.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>helo_coded <span class="ot">=</span> <span class="fu">decode.data</span>(helo)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(helo_coded)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "run.order" "std.order" "speed"     "stealth"   "sensor"    "Block"    </code></pre>
+</div>
+</div>
+<p>Now we get the number of kills based on our design and plot it.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ccd_results <span class="ot">=</span> <span class="fu">get_kills</span>(helo_coded)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">get_contours</span>(ccd_results) <span class="sc">%&gt;%</span> <span class="fu">layout</span>(<span class="at">title =</span> <span class="st">"CCD Response Surface"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8342112309c8aa590f09" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-8342112309c8aa590f09">{"x":{"visdat":{"25d46b03771":["function () ","plotlyVisDat"],"25d442ef7aca":["function () ","data"],"25d45a674f44":["function () ","data"]},"cur_data":"25d45a674f44","attrs":{"25d442ef7aca":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"z":{},"type":"contour","inherit":true},"25d45a674f44":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"markers","marker":{"color":"black","size":5},"showlegend":false,"inherit":true},"25d45a674f44.1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":261,"y":0.81,"type":"scatter","mode":"markers","marker":{"color":"red","size":5},"showlegend":false,"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"CCD Response Surface","xaxis":{"domain":[0,1],"automargin":true,"title":"speed"},"yaxis":{"domain":[0,1],"automargin":true,"title":"stealth"},"scene":{"zaxis":{"title":"kills"}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"kills","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333334","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"x":[257.735026918963,142.264973081037,257.735026918963,142.264973081037,257.735026918963,142.264973081037,142.264973081037,257.735026918963,100,300,200,200,200,200,200],"y":[0.211324865405187,0.788675134594813,0.788675134594813,0.211324865405187,0.788675134594813,0.211324865405187,0.788675134594813,0.211324865405187,0.5,0.5,0,0.5,0.5,1,0.5],"z":[3.21132486540519,3.78867513459481,4.94337567297406,2.05662432702594,4.94337567297406,2.05662432702594,3.78867513459481,3.21132486540519,2.5,2,2,3.5,3.5,2.5,3.5],"type":"contour","line":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[257.735026918963,142.264973081037,257.735026918963,142.264973081037,257.735026918963,142.264973081037,142.264973081037,257.735026918963,100,300,200,200,200,200,200],"y":[0.211324865405187,0.788675134594813,0.788675134594813,0.211324865405187,0.788675134594813,0.211324865405187,0.788675134594813,0.211324865405187,0.5,0.5,0,0.5,0.5,1,0.5],"type":"scatter","mode":"markers","marker":{"color":"black","size":5,"line":{"color":"rgba(255,127,14,1)"}},"showlegend":false,"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"line":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[261],"y":[0.81],"type":"scatter","mode":"markers","marker":{"color":"red","size":5,"line":{"color":"rgba(44,160,44,1)"}},"showlegend":false,"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"line":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="nearly-orthogonal-latin-hypercube-designs" class="level2">
+<h2 class="anchored" data-anchor-id="nearly-orthogonal-latin-hypercube-designs">Nearly Orthogonal Latin Hypercube Designs</h2>
+<p>In the CCD section, we saw the benefit of the good space filling properties of gridded designs when using response surface methodology. A benefit of CCDs is that they are much more efficient than gridded designs; however, their space-filling properties are not as good. Latin hypercube-based designs combine the efficiency of CCDs with the space-filling properties of gridded designs. As such, they are well-suited for response surface methodology.</p>
+<p>If we take a step back for a moment, how might we construct a design matrix that uniformly covers the range of the predictor variables? Why not just select randomly from uniform distributions? This is referred to as a <strong>random Latin hypercube</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">0</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>dm <span class="ot">=</span> <span class="fu">tibble</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">runif</span>(<span class="dv">10</span>),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">runif</span>(<span class="dv">10</span>),</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x3 =</span> <span class="fu">runif</span>(<span class="dv">10</span>),</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">x4 =</span> <span class="fu">runif</span>(<span class="dv">10</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(dm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>That’s not bad. We have a design matrix for 4 factors at 10 levels each, and we only needed 10 design points! However, if we take a closer look, we discover a significant issue.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>smooth_fn <span class="ot">&lt;-</span> <span class="cf">function</span>(data, mapping, ...){</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> data, <span class="at">mapping =</span> mapping) <span class="sc">+</span> </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">formula =</span> y<span class="sc">~</span>x, <span class="at">method=</span>lm, <span class="at">fill=</span><span class="st">"red"</span>, <span class="at">color=</span><span class="st">"red"</span>, <span class="at">se=</span><span class="cn">FALSE</span>, ...)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>GGally<span class="sc">::</span><span class="fu">ggpairs</span>(dm, <span class="at">lower=</span><span class="fu">list</span>(<span class="at">continuous=</span>smooth_fn), <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Random Latin Hypercube"</span>) <span class="sc">+</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Even though we randomly selected the values, some factor combinations have a significant amount of correlation. <code>x2</code> and <code>x3</code> have a correlation of -0.411, for example. Also notice that factor combination doesn’t have any design points in the upper right corner. Orthogonal and nearly-orthogonal Latin hypercubes were developed to overcome this issue using optimization techniques that minimize correlations and maximize space-filling properties.</p>
+<p>In this section, we’ll focus on the nearly orthogonal Latin hypercube (NOLH) designs developed by <a href="http://hdl.handle.net/10945/9808">Cioppa</a> and <a href="https://link.springer.com/article/10.1057/jos.2016.8">MacCalman</a>. Since NOLH designs efficiently accommodate a large number of factors, they are particularly useful for screening purposes. Excel-based tools for generating Cioppa’s and MacCalman’s designs are available to <a href="https://nps.edu/web/seed/software-downloads">download</a> from the Naval Postgraduate School’s Simulation Experiments and Efficient Designs (SEED) center.</p>
+<p>A few things to be aware of when considering these designs:</p>
+<ul>
+<li>Cioppa’s designs are <em>for continuous factors only</em>, although discrete factors can be included if the number of discrete values is at least nine or ten.</li>
+<li>Each of Cioppa’s designs can accommodate <em>up to</em> the number of stated factors, so you can use fewer factors if needed. (e.g., the 17-point design can accommodate anywhere from 1 to 7 factors). However, <em>you cannot remove design points</em>.</li>
+<li>Cioppa’s designs are not intended to be used to study quadratic effects or interactions. If you need to include these terms, use MacCalman’s designs instead.</li>
+<li>MacCalman’s designs <em>can accommodate continuous, discrete, binary, and categorical variables</em>.</li>
+<li>With MacCalman’s designs, you *can specify the number of design points*.</li>
+<li>MacCalman’s designs <em>nearly guarantee that all first and second order terms are not confounded with others.</em> Second order effects include both two-way interactions and quadratic effects.</li>
+</ul>
+<section id="factor-codings" class="level3">
+<h3 class="anchored" data-anchor-id="factor-codings">Factor Codings</h3>
+<p>The tools for generating Cioppa’s and MacCalman’s designs provide a user interface for naming factors, setting minimum and maximum factor values, and specifying the number of decimal places. The Excel tools both generate the resulting design as a .csv file, which you can then read into <em>R</em> for further use. In my experience, generating a design matrix for a study can sometimes be an iterative process. This requires switching back and forth between Excel and <em>R</em> and generating a new .csv file for each change to the design, which can be somewhat time consuming. When creating designs using the Excel tool for MacCalman’s design, there’s no getting around this because of the stochastic processes contained within the tool. With Cioppa’s Excel file, however, the entire iterative process can be conducted in <em>R</em> by using the underlying factor codings.</p>
+<p>Cioppa’s designs are the result of a Mixed Integer Program and therefore produce integer values (aka, factor codings) for each design point. The Excel tool then converts these integers into the ranges and significant figures specified by the user to generate a .csv file. This is a straight forward conversion that we can perform in an <em>R</em> script, so all we really need are the factor codings themselves to do everything in an <em>R</em> session.</p>
+<p>Factor codings for Cioppa’s 17-point design are as follows:</p>
+<div class="cell">
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["f4"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["f5"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["f7"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["f2"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["f3"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["f6"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["f1"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"6","2":"17","3":"14","4":"7","5":"5","6":"16","7":"10"},{"1":"2","2":"5","3":"15","4":"10","5":"1","6":"6","7":"11"},{"1":"3","2":"8","3":"2","4":"5","5":"11","6":"14","7":"17"},{"1":"4","2":"11","3":"6","4":"17","5":"10","6":"3","7":"13"},{"1":"13","2":"16","3":"8","4":"3","5":"6","6":"1","7":"14"},{"1":"17","2":"6","3":"7","4":"14","5":"2","6":"13","7":"15"},{"1":"11","2":"4","3":"17","4":"6","5":"15","6":"8","7":"16"},{"1":"10","2":"15","3":"13","4":"16","5":"14","6":"11","7":"12"},{"1":"9","2":"9","3":"9","4":"9","5":"9","6":"9","7":"9"},{"1":"12","2":"1","3":"4","4":"11","5":"13","6":"2","7":"8"},{"1":"16","2":"13","3":"3","4":"8","5":"17","6":"12","7":"7"},{"1":"15","2":"10","3":"16","4":"13","5":"7","6":"4","7":"1"},{"1":"14","2":"7","3":"12","4":"1","5":"8","6":"15","7":"5"},{"1":"5","2":"2","3":"10","4":"15","5":"12","6":"17","7":"4"},{"1":"1","2":"12","3":"11","4":"4","5":"16","6":"5","7":"3"},{"1":"7","2":"14","3":"1","4":"12","5":"3","6":"10","7":"2"},{"1":"8","2":"3","3":"5","4":"2","5":"4","6":"7","7":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>A pairs plot of factor codings for Cioppa’s 17-point design is shown below. Compare this plot with the pairs plot for the random Latin hypercube design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>GGally<span class="sc">::</span><span class="fu">ggpairs</span>(dm17, </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">lower =</span> <span class="fu">list</span>(<span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>, <span class="at">size=</span><span class="fl">0.1</span>)), </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"OLH With 17 Design Points"</span>) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Next is Cioppa’s 257-point design. To reduce the size of the plot, just the first 7 of the possible 29 factors are shown. Note the improved space-filling properties compared to the 17-point design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(dm257 <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>), </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">lower =</span> <span class="fu">list</span>(<span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>, <span class="at">size=</span><span class="fl">0.1</span>)), </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"NOLH With 257 Design Points"</span>) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="orthogonality-and-variance-inflation-factors" class="level2">
+<h2 class="anchored" data-anchor-id="orthogonality-and-variance-inflation-factors">Orthogonality and Variance Inflation Factors</h2>
+<p>Cioppa’s 17-point design is, in fact, strictly orthogonal, which we can confirm by calculating the dot product of each factor pair.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>){</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> (i<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span><span class="dv">7</span>){</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(dm17[[i]] <span class="sc">%*%</span> dm17[[j]])</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377
+     [,1]
+[1,] 1377</code></pre>
+</div>
+</div>
+<p>We can also see that the pair-wise correlation coefficients are all zero.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(dm17)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   f4 f5 f7 f2 f3 f6 f1
+f4  1  0  0  0  0  0  0
+f5  0  1  0  0  0  0  0
+f7  0  0  1  0  0  0  0
+f2  0  0  0  1  0  0  0
+f3  0  0  0  0  1  0  0
+f6  0  0  0  0  0  1  0
+f1  0  0  0  0  0  0  1</code></pre>
+</div>
+</div>
+<p>A common method to check for multicollinearity in a design is to calculate the variance inflation factor (VIF) for each predictor. Penn State has a good <a href="https://online.stat.psu.edu/stat462/node/180/">online resource</a> that describes VIF, which I’ll paraphrase. When multicollinearity exists, the standard errors of the estimated coefficients are inflated, which means the variances are also inflated. The VIF for the estimated regression coefficient <span class="math inline">\(\beta_i\)</span> is the amount the variance of <span class="math inline">\(\beta_i\)</span> is “inflated” by the existence of correlation among the predictor variables in the model. The VIF for the ith predictor is:</p>
+<p><span class="math display">\[VIF_i = \frac{1}{1-R^{2}_{i}}\]</span></p>
+<p>where <span class="math inline">\(R^{2}_{i}\)</span> is the <span class="math inline">\(R^2\)</span> obtained by regressing the ith predictor on the remaining predictors. If no multicollinearity exists, then each predictor’s VIF will equal 1. A rule of thumb is that a VIF above about 5 should be investigated, and a VIF above 10 indicates strong multicollinearity that should be corrected. In <em>R</em>, we can use the <code>vif()</code> function from the <code>faraway</code> package. With the 17-point design, we see that no multicollinearity exists.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>faraway<span class="sc">::</span><span class="fu">vif</span>(dm17)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>f4 f5 f7 f2 f3 f6 f1 
+ 1  1  1  1  1  1  1 </code></pre>
+</div>
+</div>
+<p>Repeating the tests on the 257-point design, we see that not every column is exactly orthogonal. For example, these two dot products are not equal.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>dm257<span class="sc">$</span>f1 <span class="sc">%*%</span> dm257<span class="sc">$</span>f17</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]
+[1,] 4274287</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>dm257<span class="sc">$</span>f2 <span class="sc">%*%</span> dm257<span class="sc">$</span>f23</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]
+[1,] 4275511</code></pre>
+</div>
+</div>
+<p>We also see that the correlation coefficients are slightly greater than zero. For example, the first four columns:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(dm257)[, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               f1            f2            f3            f4
+f1   1.000000e+00  0.0000000000  0.000000e+00  0.000000e+00
+f2   0.000000e+00  1.0000000000  0.000000e+00  0.000000e+00
+f3   0.000000e+00  0.0000000000  1.000000e+00  0.000000e+00
+f4   0.000000e+00  0.0000000000  0.000000e+00  1.000000e+00
+f5   0.000000e+00  0.0000000000  0.000000e+00  0.000000e+00
+f6   0.000000e+00  0.0000000000  0.000000e+00  0.000000e+00
+f7   0.000000e+00  0.0000000000  0.000000e+00  0.000000e+00
+f8   0.000000e+00  0.0000000000  0.000000e+00  0.000000e+00
+f9  -1.269681e-03  0.0010575966 -2.209924e-03  4.496199e-04
+f10 -1.384207e-03  0.0014831803  1.411071e-03 -1.272509e-05
+f11  1.286648e-04 -0.0009416569  1.286648e-04 -2.324450e-03
+f12 -3.152995e-04 -0.0016302258  1.969562e-03 -4.510338e-04
+f13 -8.638924e-04 -0.0005994933 -7.126052e-04 -1.852208e-03
+f14  1.573670e-03 -0.0012908900 -1.979459e-04  3.017261e-03
+f15  7.196747e-04 -0.0003124717  1.894625e-03 -8.780314e-04
+f16  1.823930e-04  0.0022141661  5.132454e-04 -2.323036e-03
+f17 -1.732027e-03  0.0010830468  7.210886e-05 -8.200615e-04
+f18 -8.907565e-04  0.0016061895 -5.980794e-04 -6.263573e-04
+f19 -9.063094e-04  0.0002757103  5.160732e-04  2.465840e-03
+f20 -2.813659e-04 -0.0007055357  8.214754e-04 -9.770043e-04
+f21 -7.069496e-06 -0.0005500068 -5.273844e-04  2.573297e-04
+f22  8.356144e-04  0.0011452583  1.531253e-03 -3.492331e-04
+f23 -3.803389e-04 -0.0008667202 -1.979459e-04 -5.528346e-04
+f24  6.207017e-04  0.0004086169 -5.655597e-04  4.001335e-04
+f25  1.241403e-03  0.0002403629  7.635056e-05 -6.150461e-04
+f26  1.173536e-04 -0.0003916501 -1.428038e-03 -5.245566e-04
+f27  1.320582e-03 -0.0001399760  1.172122e-03 -1.905936e-03
+f28  5.316261e-04 -0.0016443648  1.148086e-03  1.324824e-03
+f29  5.104176e-04 -0.0006207017 -1.527011e-04  5.217288e-04</code></pre>
+</div>
+</div>
+<p>The VIF for each predictor is also slightly greater than one. Notice that the VIFs are nowhere near our rule of thumb values.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>faraway<span class="sc">::</span><span class="fu">vif</span>(dm257)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      f1       f2       f3       f4       f5       f6       f7       f8 
+1.000017 1.000024 1.000024 1.000040 1.000013 1.000033 1.000028 1.000017 
+      f9      f10      f11      f12      f13      f14      f15      f16 
+1.000064 1.000049 1.000030 1.000033 1.000038 1.000039 1.000026 1.000060 
+     f17      f18      f19      f20      f21      f22      f23      f24 
+1.000062 1.000056 1.000037 1.000039 1.000027 1.000040 1.000029 1.000027 
+     f25      f26      f27      f28      f29 
+1.000024 1.000034 1.000050 1.000030 1.000042 </code></pre>
+</div>
+</div>
+<p>Of Cioppa’s designs, only the 17-point design is strictly orthogonal. Why is that? The short answer is that he needed to slightly relax the orthogonality requirement in the mixed integer program that generated the larger designs, hence the term “nearly orthogonal”. For the long answer, read his Ph.D.&nbsp;dissertation at the link provided earlier. MacCalman took the same approach, so designs from his Excel tool are also nearly orthogonal.</p>
+</section>
+<section id="shifting-and-stacking" class="level2">
+<h2 class="anchored" data-anchor-id="shifting-and-stacking">Shifting and Stacking</h2>
+<p>Say we have a design matrix with a relatively small number of factors, in this case four. A 17-point OLH could easily accommodate just four factors, but what if we have the time and resources available for more than 17 runs? We wouldn’t want to just replicate the 17-point design as is because if we’re going to do more runs, we might as well improve the space-filling properties of the design. There are two common approaches in this situation. First, we can select a design that accommodates more factors than necessary and just keep the four factors that we need. For example, the 17-point design:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(dm17 <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">lower =</span> <span class="fu">list</span>(<span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>, <span class="at">size=</span><span class="fl">0.1</span>)), <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"NOLH With 17 Design Points"</span>) <span class="sc">+</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Compare that to four factors from the 257-point design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(dm257 <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">lower =</span> <span class="fu">list</span>(<span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>, <span class="at">size=</span><span class="fl">0.1</span>)), <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"NOLH With 257 Design Points"</span>) <span class="sc">+</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Another technique is to apply shifting and stacking to a base design. Starting with the 17-point design, we make a copy of the design, move the last column to the first column and <strong>shift</strong> the other columns to the right. Then we <strong>stack</strong> the original design on top of the shifted design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>original_dm <span class="ot">=</span> dm17 <span class="sc">%&gt;%</span> <span class="fu">select</span>(f1, f2, f3, f4) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">design=</span><span class="st">"original"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>shifted_dm <span class="ot">=</span> dm17 <span class="sc">%&gt;%</span> <span class="fu">select</span>(f4, f1, f2, f3) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">design=</span><span class="st">"shifted"</span>)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(shifted_dm) <span class="ot">=</span> <span class="fu">colnames</span>(original_dm)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>stacked_dm <span class="ot">=</span> <span class="fu">bind_rows</span>(original_dm, shifted_dm)</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(stacked_dm, <span class="at">mapping =</span> ggplot2<span class="sc">::</span><span class="fu">aes</span>(<span class="at">color =</span> design),</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">lower =</span> <span class="fu">list</span>(<span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>, <span class="at">size=</span><span class="dv">1</span>)), <span class="at">progress=</span><span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Shifted and Stacked Design Matrix"</span>) <span class="sc">+</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="advanced_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'alternate';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/logistic.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Logistic Regression</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../tutorial/np_anova.html" class="pagination-link">
+        <span class="nav-page-text">Nonparametric ANOVA</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">Copyright 2022, John King</div>   
+  </div>
+</footer>
+
+
+
+</body></html>

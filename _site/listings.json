@@ -1,0 +1,23 @@
+[
+  {
+    "listing": "/blog.html",
+    "items": [
+      "/posts/tripeaks/index.html",
+      "/posts/maze/index.html",
+      "/posts/flow/index.html",
+      "/posts/knn_art/index.html",
+      "/posts/colonize/index.html",
+      "/posts/recaman/index.html",
+      "/posts/collatz/index.html",
+      "/posts/wordle/index.html",
+      "/posts/adjusted_stats/index.html",
+      "/posts/predict_football/index.html",
+      "/posts/simple_rating_system/index.html",
+      "/posts/oregon_football/index.html",
+      "/posts/res5/index.html",
+      "/posts/dqn_ttt/index.html",
+      "/posts/qlearn/index.html",
+      "/posts/decipher/index.html"
+    ]
+  }
+]
