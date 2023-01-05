@@ -23,7 +23,7 @@ categories:
 image: "teaser.png"
 ---
 
-Continuing with the streak of posts about college football posts, here I finally get into developing some models to predict the winning team and margin of victory of college football games. For this analysis, I was inspired by [this post](https://blog.collegefootballdata.com/lessons-from-picking-the-2022-cfb-season/) that mentioned a leader board for people who picked winners from the 2021-2022 season. Reminds me of Kaggle competitions, which I did once for fun and [wrote about it](https://jfking.netlify.app/blog/ames/).
+Continuing with the streak of posts about college football posts, here I finally get into developing some models to predict the winning team and margin of victory of college football games. For this analysis, I was inspired by [this post](https://blog.collegefootballdata.com/lessons-from-picking-the-2022-cfb-season/) that mentioned a leader board for people who picked winners from the 2021-2022 season. Reminds me of Kaggle competitions, which I did once for fun and [wrote about it](https://jfking.netlify.app/posts/ames/).
 
 I also found [this published paper](https://content.iospress.com/articles/journal-of-sports-analytics/jsa190314) both extremely interesting and helpful because it lays out in detail the author's analytic methodology for building their predictive model. The first part of this post is my attempt at replicating their technique using a different data source (collegefootball.com's [API](https://api.collegefootballdata.com/api/docs/?url=/api-docs.json)) and using data from the 2017-2020 seasons to predict games of the 2021 season. Spoiler, my initial tree-based models don't perform nearly as well as theirs, and I eventually try a neural network with much better success.
 
