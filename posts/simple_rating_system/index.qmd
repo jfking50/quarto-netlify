@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Motivation
 
-In my [last post](https://jfking.netlify/blog/oregon-football/), I was playing around with data from an API offered by <http://collegefootballdata.com>.
+In my [last post](https://jfking.netlify/posts/oregon-football/), I was playing around with data from an API offered by <http://collegefootballdata.com>.
 
 Then I found some blog posts on the site, and I thought a couple of them on how Simple Rating Systems work were interesting.
 
