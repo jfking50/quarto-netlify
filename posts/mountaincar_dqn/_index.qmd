@@ -22,7 +22,7 @@ categories:
 image: "mc.png"
 ---
 
-A while back, I found OpenAI's [Gym environments](https://gym.openai.com/) and immediately wanted to try to solve one. I didn't really know what I was doing at the time, so I went back to the basics for a better understanding of [Q-learning](https://jfking.netlify.app/blog/qlearning/ and [Deep Q-Networks](https://jfking.netlify.app/blog/dqn-ttt/). Now I think I'm ready to graduate from tic-tac-toe and try a Gym environment again. Best to start simple, though.
+A while back, I found OpenAI's [Gym environments](https://gym.openai.com/) and immediately wanted to try to solve one. I didn't really know what I was doing at the time, so I went back to the basics for a better understanding of [Q-learning](https://jfking.netlify.app/posts/qlearning/ and [Deep Q-Networks](https://jfking.netlify.app/blog/dqn-ttt/). Now I think I'm ready to graduate from tic-tac-toe and try a Gym environment again. Best to start simple, though.
 
 ## The MountainCar Environment
 
