@@ -6,7 +6,9 @@ permalink: /404.html
 page-layout: full
 ---
 
+::: {.center-text}
 ## The Venn diagram of what just happened
+:::
 
 <div class="parent-1">
 <div class="child left-circle">
