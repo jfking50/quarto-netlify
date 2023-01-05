@@ -32,7 +32,7 @@ The idea for this post started off as essentially a replication of [this post](h
 
 I'm not going to go through all the detail about why I'm going through these steps because, again, it's just re-creating what was done in the above link. In a nutshell, I'm going to calculate adjusted offense and defense scores for FBS college football teams based on each team's strength of schedule week by week through the 2021 season.
 
-I'm also not going to go over making API calls because 1) I covered that [here](https://jfking.netlify.app/blog/oregon-football/), and 2) I've already downloaded that data and saved it to disk. You can see the code necessary for the API calls commented out, but really I'm just reading the data from disk that I saved earlier. The first data set `games` is basic information about each game of the season.
+I'm also not going to go over making API calls because 1) I covered that [here](https://jfking.netlify.app/posts/oregon-football/), and 2) I've already downloaded that data and saved it to disk. You can see the code necessary for the API calls commented out, but really I'm just reading the data from disk that I saved earlier. The first data set `games` is basic information about each game of the season.
 
 ```{r message=FALSE, warning=FALSE}
 library(httr)
