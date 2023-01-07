@@ -100,5 +100,8 @@
   },
   "presentations/doe.qmd": {
     "doe.html": "edb4a181"
+  },
+  "posts/ames/index.qmd": {
+    "index.html": "d2c071dd"
   }
 }

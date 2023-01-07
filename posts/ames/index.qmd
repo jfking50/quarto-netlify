@@ -107,16 +107,21 @@ ames$YrSold = as.factor(ames$YrSold)
 Next, I find the features that contain the same value in more than 99.5% of the observations. These will provide virtually no information to help explain why `SalesPrice` varies, so I drop the features. Turns out there's just one: `PoolArea`.
 
 ```{r}
-(to_drop = colnames(ames)[which(ames %>% summarise_all(funs(sum(.==0))) / nrow(ames) >0.995)])
+(to_drop <-
+  colnames(ames)[which(ames %>%
+                       summarize(across(1:ncol(ames), ~.==0)) %>%
+                       colSums() / nrow(ames) > 0.995)])
+
 ames = ames %>% select(-all_of(to_drop))
 ```
 
 The last step is to normalize the numeric features that have a skewed distribution.
 
 ```{r}
+#| include: false
 sk = dlookr::find_skewness(ames, thres = 0.5)
 
-for (i in sk){ames[, i] = bestNormalize::bestNormalize(ames[, i])$x.t}
+for (i in sk){ames[, i] = bestNormalize::bestNormalize(ames[, i], quiet=TRUE)$x.t}
 ```
 
 ## Categorical Features
@@ -257,7 +262,7 @@ for (fac in factor_cols){
 }
 ```
 
-Then I ceated a couple of new categorical features to describe toal garage and exterior quality. I tried several other new categorical features but they turned out to not be useful.
+Then I created a couple of new categorical features to describe total garage and exterior quality. I tried several other new categorical features but they turned out to not be useful.
 
 ```{r}
 ames$TotalGarageQual = ames$GarageQual * ames$GarageCond
@@ -279,7 +284,8 @@ ames = ames %>% filter(!Id %in% c(524, 1299))
 
 A final scrub of the features revealed that four more features whould be dropped. `Id` is just the the row number, so of no use. The other three contained a single level that dominated the feature, just not at the 99.5% threshold I used earlier. I then split the data back into separate training and test sets. I also noticed that the response variable distribution was a little skewed, so transformed it using the log of the response.
 
-```{r message=FALSE, warning=FALSE}
+```{r}
+#| include: false
 # drop factors
 train_test = ames %>% select(-Id, -Street, -Utilities, -PoolQC)
 
@@ -301,19 +307,18 @@ train_full = as.h2o(train_df)
 test_set = as.h2o(test_df)
 ```
 
-I used `h2o`'s `automl()` function to fit an array of distributed random forests, gradient boosted machines, and generalized linear models and also fit some ensembles models. The best performing model turned out to be a generalized linear model, which I didn't expect.
+I used `h2o`'s `automl()` function to fit an array of distributed random forests, gradient boosted machines, and generalized linear models and also fit some ensembles models.
 
 ```{r}
+#| include: false
 aml = h2o.automl(x = 1:86, y = 87,
                  training_frame = train_full,
                  exclude_algos = "DeepLearning",
                  nfolds = 10, 
                  seed=1)
+```
 
-# aml@leader
-# best yet!
-# Mean Residual Deviance :  0.009144619
-
+```{r}
 # View the AutoML Leaderboard
 lb <- aml@leaderboard
 print(lb, n = nrow(lb)) 
@@ -322,6 +327,7 @@ print(lb, n = nrow(lb))
 Lastly, I used the best performing model to make predictions on the test set (after un-doing the log transformation), and submitted those predictions to the Kaggle competition.
 
 ```{r}
+#incluse: false
 aml_preds = exp(h2o.predict(aml@leader, newdata = test_set))
 
 submisn = tibble(

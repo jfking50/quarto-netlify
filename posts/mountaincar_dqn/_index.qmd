@@ -22,18 +22,17 @@ categories:
 image: "mc.png"
 ---
 
-A while back, I found OpenAI's [Gym environments](https://gym.openai.com/) and immediately wanted to try to solve one. I didn't really know what I was doing at the time, so I went back to the basics for a better understanding of [Q-learning](https://jfking.netlify.app/posts/qlearning/ and [Deep Q-Networks](https://jfking.netlify.app/blog/dqn-ttt/). Now I think I'm ready to graduate from tic-tac-toe and try a Gym environment again. Best to start simple, though.
+A while back, I found OpenAI's [Gym environments](https://gym.openai.com/) and immediately wanted to try to solve one. I didn't really know what I was doing at the time, so I went back to the basics for a better understanding of [Q-learning](https://jfking.netlify.app/posts/qlearning/) and [Deep Q-Networks](https://jfking.netlify.app/blog/dqn-ttt/). Now I think I'm ready to graduate from tic-tac-toe and try a Gym environment again. Best to start simple, though.
 
 ## The MountainCar Environment
 
 There are two Mountain Car environments: one with a discrete number of actions, and one with a continuous range of actions. Keeping it simple means go with the discrete case. The Gym documentation describes the situation and the goal:
 
->A car is on a one-dimensional track, positioned between two "mountains". The goal is to drive up the mountain on the right; however, the car's engine is not strong enough to scale the mountain in a single pass. Therefore, the only way to succeed is to drive back and forth to build up momentum.
+> A car is on a one-dimensional track, positioned between two "mountains". The goal is to drive up the mountain on the right; however, the car's engine is not strong enough to scale the mountain in a single pass. Therefore, the only way to succeed is to drive back and forth to build up momentum.
 
-![MountainCar](mc.png){width=300}
+![MountainCar](mc.png){width="300"}
 
 One of the nice things about working with Gym environments is that I don't have to put effort into defining my own environment like I did with tic-tac-toe. All I have to do to create the mountain car environment is `gym.make('MountainCar-v0')`. It's that easy! I need to get some information about the **state space and actions** so I know what I'm dealing with. First the state space.
-
 
 ```{python}
 import gym
@@ -44,7 +43,6 @@ print(env.observation_space)
 `Box` means that it's a continuous state space, and the (2,) means there are two numbers that represent the state space. The two lists represent the low and high limits of the state space. Going back to the documentation, the state represents the position and velocity of the car in that order. In other words, the position can be between -1.2 and 0.6, and the velocity can be between -0.07 and 0.07.
 
 The documentation states that an episode ends the car reaches 0.5 position, or if 200 iterations are reached. That means the position value is the x-axis with positive values to the right, and that a positive velocity means the car is moving to the right. The documentation also says that the starting state is a random position from -0.6 to -0.4 with no velocity, so the car starts at the bottom of the valley at a stand still. Makes sense. What do I have for actions?
-
 
 ```{python}
 print(env.action_space)
@@ -103,10 +101,9 @@ If you read my last post on [deep Q-networks](https://jfking.netlify/blog/dqn-tt
 
 **`sample_experiences`**: This is also new and is part of the replay memory implementation. This function is called only after the replay memory deque is full. Here I randomly sample 64 experiences (defined by `batch_size`) from the replay memory. According to [Aurélien Géron](https://www.amazon.com/Hands-Machine-Learning-Scikit-Learn-TensorFlow/dp/1492032646),
 
->This helps reduce the correlations between the experiences in a training batch, which tremendously helps training.
+> This helps reduce the correlations between the experiences in a training batch, which tremendously helps training.
 
 **`train_model`**: The only thing different here is the implementation of training from memory replay via `self.sample_experiences()` instead of training based on the full set of experiences. Otherwise, the neural net is trained exactly the same way as it did for the tic-tac-toe example. Although not strictly part of this function, I also switched from a stochastic gradient decent optimizer to an Adam optimizer and decreased the learning rate to 0.001 in the `__init__` function.
-
 
 ```{python}
 class DQNagent:
@@ -163,7 +160,7 @@ This problem kicked my butt for quite a while. I *could not* get that stupid car
 
 First, I left everything as is, and just fed experiences to the NN hoping it would learn. Recall that each episode consists of 200 steps, and so you get a -1 reward for each step for a total reward of -200. If the car reaches the goal in say 150 steps, then you get a total reward of -150. My idea here was that the NN would learn to maximize the total reward by finishing in under 200 steps. Nope. Never happened. The car never got to the goal during training and so the NN never learned anything.
 
-Then I started thinking about the reward system. It seemed like I needed to give the NN some positive reward to encourage it along. I tried giving a small positive reward if the car made it some distance away from the range of possible starting points. That ended up teaching the NN to drive up and down the same side of the hill over and over. Clearly, the statement, "the only way to succeed is to drive back and forth to build up momentum" is correct, but how do I do that? I tried a one-time positive reward on one side of the hill and only gave additional rewards if the car then tried going up the other side of the hill. That didn't work, either. I tried giving a huge reward if the car ever made it to the goal position, hoping that would back-propogate quickly through the NN weights. Still nope.
+Then I started thinking about the reward system. It seemed like I needed to give the NN some positive reward to encourage it along. I tried giving a small positive reward if the car made it some distance away from the range of possible starting points. That ended up teaching the NN to drive up and down the same side of the hill over and over. Clearly, the statement, "the only way to succeed is to drive back and forth to build up momentum" is correct, but how do I do that? I tried a one-time positive reward on one side of the hill and only gave additional rewards if the car then tried going up the other side of the hill. That didn't work, either. I tried giving a huge reward if the car ever made it to the goal position, hoping that would back-propagate quickly through the NN weights. Still nope.
 
 It seemed like this reward system I was creating was getting a lot more complicated that it should need to be, so then I tried all of the above while at the same time adjusting the tuning parameters: learning rate, discount rate, and epsilon. No luck. I tried fiddling with how the NN was constructed: number of hidden layers, nodes, etc. Nope. I also tried changing the replay memory batch size. I even took memory replay completely out of the algorithm thinking that maybe that rare time the car made it to the goal kept getting missed in the random draw from the memory replay. Nope again.
 
@@ -171,11 +168,10 @@ It seemed like this reward system I was creating was getting a lot more complica
 
 It dawned on me that maybe I should just come up with a reward system that mimiced the hard-coded policy I described earlier. Finally, that worked! In the code below, you'll see:
 
-* `if next_state[0] - state[0] > 0 and action == 2: reward = 1` moving right and pushing right = a reward
-* `if next_state[0] - state[0] < 0 and action == 0: reward = 1` moving left and pushing left = a reward
+-   `if next_state[0] - state[0] > 0 and action == 2: reward = 1` moving right and pushing right = a reward
+-   `if next_state[0] - state[0] < 0 and action == 0: reward = 1` moving left and pushing left = a reward
 
-The following code trans the NN for 600 epsodes and keeps track of the best score. I define the score as the number of steps it takes to reach the goal, so the fewer, the better. When a new best score is reached, I save the model weights as `best_weights`. After the 600th episode is over, I reset the model weights with the best weights. Why? It turns out that learning is hard, and forgetting is easy, which I'll demonstrate shortly.
-
+The following code trans the NN for 600 episodes and keeps track of the best score. I define the score as the number of steps it takes to reach the goal, so the fewer, the better. When a new best score is reached, I save the model weights as `best_weights`. After the 600th episode is over, I reset the model weights with the best weights. Why? It turns out that learning is hard, and forgetting is easy, which I'll demonstrate shortly.
 
 ```{python}
 best_score = 200
@@ -312,4 +308,4 @@ plt.ylabel("Score", fontsize=14)
 plt.show()
 ```
 
-This is much better than the previous results! The NN held a sub-200 score for quite a few episodes towards the end of training. However, the best score was only 107, so there's still more work to do to maintain sub 110 for 100 episodes. There is no incentive for reaching to goal quickly, so maybe I can get better results by adding a large reward for finishing in fewer than 110 steps. The problem with that approach is that training is conducted on a random sampling of 64 experiences out of the 2000 that are in the replay memory deque. Sub-110 scores are rare, so the chances of that reward making it into the training set is remote. Probably a better approach is to improve the NN performance so that sub-110 scores are more common. That might be possible by playing around with tuning parameters or maybe switching to a different type of reinforement learning method like a Dueling Deep Q-Network or a Double Dueling Deep Q-Network. That's for another post, though.
+This is much better than the previous results! The NN held a sub-200 score for quite a few episodes towards the end of training. However, the best score was only 107, so there's still more work to do to maintain sub 110 for 100 episodes. There is no incentive for reaching to goal quickly, so maybe I can get better results by adding a large reward for finishing in fewer than 110 steps. The problem with that approach is that training is conducted on a random sampling of 64 experiences out of the 2000 that are in the replay memory deque. Sub-110 scores are rare, so the chances of that reward making it into the training set is remote. Probably a better approach is to improve the NN performance so that sub-110 scores are more common. That might be possible by playing around with tuning parameters or maybe switching to a different type of reinforcement learning method like a Dueling Deep Q-Network or a Double Dueling Deep Q-Network. That's for another post, though.
