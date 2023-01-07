@@ -25,3 +25,37 @@
     color: #d6d6d6;
     text-shadow: 0 0 20px #333;
 }
+.dot {
+  height: 400px;
+  width: 400px;
+  background-color: rgba(0, 0, 255, 0.3);
+  border-radius: 50%;
+  display: inline-block;
+}
+.parent-1 {
+  position: relative;
+  z-index: -1;
+}
+.parent {
+  position: relative;
+}
+.child {
+  position: absolute;
+  top: 0;
+  width: 400px;
+  font-size: 20px;
+}
+.left-circle {
+  left: 0;
+}
+.right-circle {
+  left: 250px;
+}
+.left-text {
+  left: 50px;
+  padding-top: 200px;
+}
+.right-text {
+  left: 440px;
+  padding-top: 200px;
+}
