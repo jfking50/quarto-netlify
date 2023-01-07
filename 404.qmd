@@ -6,26 +6,24 @@ permalink: /404.html
 page-layout: full
 ---
 
-::: center-text
 ## The Venn diagram of what just happened
-:::
 
-::: parent-1
-::: {.child .left-circle}
-:::
+<div class="parent-1">
+<div class="child left-circle">
+<span class="dot"></span>
+</div>
+<div class="child right-circle">
+<span class="dot"></span>
+</div>
+</div>
 
-::: {.child .right-circle}
-:::
-:::
-
-::: parent
-::: {.child .left-text}
+<div class="parent">
+<div class="child left-text">
 I broke something
-:::
-
-::: {.child .right-text}
+</div>
+<div class="child right-text">
 You can't type
-:::
-:::
+</div>
+</div>
 
-[Back To Safety](https://jfking.netlify.app/){.btn .btn-success .center role="button"}
+[Back To Safety](https://jfking.netlify.app/){.btn .btn-success role="button" .btn-position}

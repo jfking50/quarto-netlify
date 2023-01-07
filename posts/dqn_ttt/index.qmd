@@ -202,17 +202,12 @@ def play_v_random (games):
         #print(board[6:9])
         results[i] = reward
     return results
-```
-
-So here we have it. The AI-enabled player won 90% of the games, lost 8%, and 2% were ties. For comparison, the best performance using Q-learning was 81.2% AI wins, 2.3% losses, and 16.5% ties. The deep Q-network performed significantly better after being trained on 1,000 games than Q-learning did after being trained on 200,000 games. Remarkable!
-
-```{python}
-#| echo: false
+  
 results = play_v_random(1000)
+
+sum(1 for i in results if i == 1)/10, sum(1 for i in results if i == -1)/10, sum(1 for i in results if i == 0)/10
 ```
 
-```{python}
-sum(1 for i in results if i == 1), sum(1 for i in results if i == -1), sum(1 for i in results if i == 0)
-```
+So here we have it. The AI-enabled player performed significantly better than the best performance using Q-learning (81.2% AI wins, 2.3% losses, and 16.5% ties). The deep Q-network also performed significantly better after being trained on 1,000 games than Q-learning did after being trained on 200,000 games. Remarkable!
 
 As I mentioned at the beginning of the post, a deep Q-network is the most basic application of neural networks to reinforcement learning. More advanced applications include double deep Q-networks and dueling deep Q networks, and each of these can be enhanced with techniques like actor-critic algorithms, curiosity-based exploration, proximal policy optimization, and so on. There's a lot left to explore.
