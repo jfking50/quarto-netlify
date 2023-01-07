@@ -1,5 +1,0 @@
-install.packages("rmarkdown")
-install.packages("jsonlite")
-library(jsonlite)
-remove.packages("jsonlite")
-install.packages("jsonlite")
