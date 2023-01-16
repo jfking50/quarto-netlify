@@ -1,0 +1,570 @@
+---
+title: "Stock Picker"
+description: "Train a model to predict future stock prices."
+author: "John King"
+date: "1/16/2023"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-tools: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  message: false
+categories:
+  - R
+  - predictive modeling
+  - machine learning
+  - stocks
+image: "mc.png"
+---
+
+In the Summer of 2022, a colleague shared some scripts he had written to identify stocks that had a high probability of increasing their value 20 days in the future. I don't want to give away his methodology, so I'll just say that the scripts fit two models for each individual stock, and there were more than 7,000 stocks. It was an interesting approach, and I worked on just getting the scripts to be more efficient. Eventually, I was able to get the whole process to run about 2.5x faster, which translated into several hours.
+
+He said that he had very good success with the model results, but occasionally would make a bad pick that would tank. Another downside was that each time he was ready to buy a new stock, he'd have to re-run the script to get the most up to date predictions. His approach got me interested in trying a completely different method. It seemed to me that there ought to be some fundamental similarities about stock market behavior that all stocks share, so instead of fitting one model for every stock, how about fitting one model for any stock. To reduce the risk of buying something that would completely tank, I decided to just limit the data to just S&P 500 stocks.
+
+To test that idea out, this script downloads market indices (`idx`) and S&P 500 stock histories (`sp500`) since 2007. Stock and index data are joined into one large dataframe `df_joined`. The data is then ordered and split into training and test sets. A `tabnet` model is tuned on the training set, and the hyperparameters from the best fit model are used to train the final model. Although the model is trained on S&P 500 stocks only, the stock symbol was not included as a predictor variable, and so the model may be used to predict any stock's future close price . There is only one predictive model, and it's a regression model that predicts a stock's closing price 3 days in the future.
+
+So here we go. First, load some packages.
+
+```{r}
+library(tidyverse)
+library(quantmod)   # quantitative financial modeling
+library(purrr)      # for map and reduce functions
+library(lubridate)
+library(tidymodels) # for model fitting
+library(tabnet)     # the predictive model
+library(plotly)
+```
+
+Other packages used but not loaded into the namespace are:
+
+-   `yfR`: a yahoo finance for R package.
+-   `future`: for parallel processing.
+-   `zoo`: for rolling functions.
+-   `TTR`: Technical Trading Rules for stock market indicator functions.
+-   `vip`: for variable importance plots.
+-   `cvms`: for a nice looking confusion matrix.
+-   `torch`: for the `tabnet` neural network engine.
+
+## S&P 500 Historical Stock Prices
+
+Since this takes a while, you might want to save it to disk so you can re-use the data without having to re-download everything.
+
+```{r}
+#| eval: false
+future::plan("future::multisession")
+
+sp500 <- yfR::yf_collection_get("SP500", 
+                                do_parallel = TRUE, 
+                                first_date = "2007-01-01")
+
+future::plan("sequential")
+```
+
+```{r}
+#| echo: false
+sp500 <- readRDS("sp500_history.Rdata")
+```
+
+Clean up the dataframe and rename columns.
+
+```{r}
+sp500 <- sp500 %>%
+  select(-ret_adjusted_prices, -ret_closing_prices) %>%
+  rename_with(~c("Symbol", "Date", "Open", "High", "Low", "Close", "Volume", "Adj_Close" ))
+```
+
+## Add Predictor Variables
+
+Group by stock symbol and do some feature engineering to add predictor variables.
+
+```{r}
+sp500 <- sp500 %>%
+  group_by(Symbol) %>%
+  mutate(
+    Date = as.Date(Date,format="%Y-%m-%d"),
+    Day_of_week = as.factor(weekdays(Date)),
+    Month = as.factor(month(Date)),
+    Volatility = (High - Low) / Close,
+    seven_day_volume_avg = zoo::rollmean(Volume, k=7, fill=NA, align = "right"),
+    seven_day_volatility_avg = zoo::rollmean(Volatility, k=7, fill=NA, align = "right"),
+    seven_day_trend = (Close-(dplyr::lag(Close,n=7,default = NA))) / dplyr::lag(Close,n=7,default = NA),
+    seven_day_volume_trend = (seven_day_volume_avg-(dplyr::lag(seven_day_volume_avg, n=7, default = NA))) /
+      (dplyr::lag(seven_day_volume_avg, n=7, default = NA)),
+    local_20_max = zoo::rollapplyr(Close, 20, max, partial=TRUE),
+    local_20_min = zoo::rollapplyr(Close, 20, min, partial=TRUE),
+    diff_from_local_max = Close - local_20_max,
+    diff_from_local_min = Close - local_20_min,
+    local_range = (local_20_max - local_20_min) / Close,
+    trade_vol_5mov_avg = zoo::rollmean(Volume, k = 5, fill = NA, align = "right"),
+    diff_ma_20 = Close - zoo::rollmean(Close, k = 20, fill = NA, align = "right")
+  )
+```
+
+I iterated on this a while to assess model performance using different additional predictor variables. This is what I eventually settled on.
+
+```{r}
+sp500 <- sp500 %>% mutate(
+  three_day_change = Close - dplyr::lag(Close, n=3),
+  rel_strength_index = TTR::RSI(Close, n=14),
+  MACD = TTR::MACD(Close, nFast=12, nSlow=26, nSig=9, maType="EMA"),
+  macd = unlist(MACD)[, 1],
+  macd_signal = unlist(MACD)[, 2],
+  macd_above_signal = macd - macd_signal,
+  SO = TTR::stoch(Close),
+  fastK = unlist(SO)[, 1],
+  fastD = unlist(SO)[, 2],
+  slowD = unlist(SO)[, 3],
+  BB = TTR::BBands(Close),
+  bb_dn = unlist(BB)[, 1],
+  bb_mavg = unlist(BB)[, 2],
+  bb_up = unlist(BB)[, 3],
+  bb_pctB = unlist(BB)[, 4],
+  y = dplyr::lead(Close, n=3, default = NA) # the response (or outcome) variable
+) %>% select(-MACD, -SO, -BB)
+
+head(sp500)
+```
+
+Now that I have the S&P 500 stocks, I'm going to get the historical data for five major stock indexes, `IV_vars`.
+
+```{r}
+IV_vars <- c("NDAQ","SPY","CBOE","GS","^VIX") 
+
+idx <- IV_vars %>% map(function(symbol){
+  
+  df <- as_tibble(
+    getSymbols(Symbols = symbol, 
+               reload.Symbols = FALSE, 
+               warnings = FALSE, 
+               auto.assign = FALSE),
+    rownames = "Date") %>%
+    rename_with(~c("Date","Open","High","Low","Close","Volume","Adj_Close" ))
+  
+  if (symbol == "^VIX"){symbol <- "VIX"}
+
+  df <- df %>%
+    mutate(
+      Date = as.Date(Date, format="%Y-%m-%d"),
+      Volatility = (High - Low) / Close,
+      seven_day_volume_avg = zoo::rollmean(Volume, k=7, fill=NA, align = "right"),
+      seven_day_volatility_avg = zoo::rollmean(Volatility, k=7, fill=NA, align = "right"),
+      seven_day_trend = (Close-(dplyr::lag(Close,n=7,default = NA))) / dplyr::lag(Close,n=7,default = NA),
+      local_20_max = zoo::rollapplyr(Close, 20, max, partial=TRUE),
+      local_20_min = zoo::rollapplyr(Close, 20, min, partial=TRUE),
+      diff_from_local_max = Close - local_20_max,
+      diff_from_local_min = Close - local_20_min,
+      local_range = (local_20_max - local_20_min) / Close
+    ) %>%
+    select(-Open, -High, -Low, -Adj_Close, -local_20_min, -local_20_max)
+    
+  colnames(df) <- c("Date", paste(symbol, colnames(df)[2:10], sep="_"))
+  
+  df
+
+}) %>% reduce(left_join, by="Date")
+
+head(idx)
+```
+
+Now I join the stock dataframe to the index dataframe, eliminate some columns, and drop `NA`s.
+
+```{r}
+df_joined <- sp500 %>% ungroup() %>%
+  left_join(idx, by = "Date") %>% 
+  select(
+    y,
+    Symbol,
+    Close, 
+    Date,
+    diff_ma_20,
+    macd,
+    macd_signal,
+    macd_above_signal,
+    three_day_change,
+    rel_strength_index,
+    fastK,
+    fastD,
+    slowD,
+    bb_dn,
+    bb_mavg,
+    bb_up,
+    bb_pctB,
+    Volume, 
+    Volatility, 
+    seven_day_volume_avg, 
+    seven_day_volatility_avg, 
+    seven_day_trend, 
+    seven_day_volume_trend, 
+    local_20_max, 
+    local_20_min, 
+    diff_from_local_max, 
+    diff_from_local_min, 
+    local_range, 
+    NDAQ_Close, 
+    NDAQ_Volatility, 
+    NDAQ_Volume, 
+    NDAQ_Volume, 
+    NDAQ_seven_day_volume_avg, 
+    NDAQ_seven_day_volatility_avg, 
+    NDAQ_seven_day_trend, 
+    NDAQ_diff_from_local_max, 
+    NDAQ_diff_from_local_min, 
+    NDAQ_local_range, 
+    SPY_Close, 
+    SPY_Volatility, 
+    SPY_Volume, 
+    SPY_seven_day_volume_avg, 
+    SPY_seven_day_volatility_avg, 
+    SPY_seven_day_trend, 
+    SPY_diff_from_local_max, 
+    SPY_diff_from_local_min, 
+    SPY_local_range, 
+    GS_Close, 
+    GS_Volatility, 
+    GS_Volume, 
+    GS_seven_day_volume_avg, 
+    GS_seven_day_volatility_avg, 
+    GS_seven_day_trend, 
+    GS_diff_from_local_max, 
+    GS_diff_from_local_min, 
+    GS_local_range, 
+    CBOE_Close, 
+    CBOE_Volatility, 
+    CBOE_Volume, 
+    CBOE_seven_day_volume_avg, 
+    CBOE_seven_day_volatility_avg, 
+    CBOE_seven_day_trend, 
+    CBOE_diff_from_local_max, 
+    CBOE_diff_from_local_min, 
+    CBOE_local_range, 
+    VIX_Close, 
+    VIX_Volatility, 
+    VIX_seven_day_volatility_avg, 
+    VIX_seven_day_trend
+  ) %>%
+  drop_na()
+
+head(df_joined)
+```
+
+Again, you might want to save this to disk so you don't have to keep repeating the above steps.
+
+One stock (NVR) trades at over $4,000/share. It's so much higher than all of the others, I decided to eliminate it from training and testing.
+
+```{r}
+df_joined %>% filter(Close > 4000) %>% distinct(Symbol)
+```
+
+For speed purposes, I'm going to train on just the data since 2017.
+
+```{r}
+df_joined5 <- df_joined %>% filter(Date >= "2017-01-01" & Symbol != "NVR") %>% arrange(Date)
+```
+
+This demonstrates how a naive stock picker would have fared in 2022 (as of Summer 2022). I'll need to at least beat this benchmark.
+
+```{r}
+df_joined %>%
+  filter(Date >= "2022-01-01") %>%
+  mutate(inc = y > Close) %>%
+  summarize(year_2022 = sum(inc)) / 58033
+```
+
+## Hyperparameter Tuning
+
+Now I create train and test data sets. I'll train on data up to 2022-01-01, and the test data will be from that day forward. Functions below are from `tidymodels`.
+
+```{r}
+data_split <- initial_time_split(df_joined5, 
+                                 prop = df_joined5 %>% filter(Date < "2022-01-01") %>% nrow() / nrow(df_joined5))
+train_data <- training(data_split) 
+test_data  <- testing(data_split)
+val_set <- validation_split(train_data, prop = 0.80)
+```
+
+Create the neural net recipe.
+
+```{r}
+nn_rec <- recipe(y ~ ., data = train_data %>% select(-Symbol, -Date)) %>%
+  step_normalize(all_numeric_predictors())
+```
+
+Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU's dedicated memory. Mine's old and wimpy, so with validation, I have to keep it to $2^13$. Without validation, I can go up to $2^15$. This took many hours on my machine to complete, and some models failed.
+
+```{r}
+#| eval: false
+nn_mod <-
+  tabnet(epochs = 10, 
+         batch_size = 2^13,
+         virtual_batch_size = 2^10,
+         decision_width = tune(), 
+         attention_width = tune(),
+         num_steps = tune(), 
+         penalty = tune(), 
+         momentum = tune(),
+         feature_reusage = tune(), 
+         learn_rate = tune()) %>% 
+  set_engine("torch", device="cuda", verbose=TRUE) %>%
+  set_mode("regression")
+```
+
+Define the workflow.
+
+```{r}
+#| eval: false
+nn_wf <- 
+  workflow() %>%
+  add_model(nn_mod) %>%
+  add_recipe(nn_rec)
+```
+
+Fit 25 models for tuning.
+
+```{r}
+#| echo: false
+nn_fit <- readRDS("nn_fit.Rdata")
+```
+
+```{r}
+#| eval: false
+nn_fit <-
+  nn_wf %>%
+  tune_grid(val_set,
+            grid = 25,
+            control = control_grid())
+
+# see how the models performed
+nn_fit %>% collect_metrics()
+```
+
+Show the top 5 models based on root mean squared error (RMSE) and R-squared.
+
+```{r}
+nn_fit %>% show_best(metric = "rmse")
+```
+
+```{r}
+nn_fit %>% show_best(metric = "rsq")
+```
+
+You can save and reload the model results for another day.
+
+## The Final Fit
+
+For the final fit, I went back to 2012. I tried 2007, but I kept running out of GPU memory when using the best hyperparameters ID'ed above. Side note - if I use default hyperparameter values, I can train on data back to 2007, so one or more of the hyperparameters is memory intensive.
+
+```{r}
+set.seed(42)
+
+data_split <- initial_time_split(df_joined5, 
+                                 prop = df_joined5 %>% 
+                                   filter(Date < "2022-01-01") %>% 
+                                   nrow() / nrow(df_joined5))
+train_data <- training(data_split) 
+test_data  <- testing(data_split)
+
+nn_rec <- recipe(y ~ ., data = train_data %>% select(-Symbol, -Date)) %>%
+  step_normalize(all_numeric_predictors())
+```
+
+Final model. I did this in 5-epoch increments just in case there were any errors.I stopped after 15 epochs since the loss had stabilized. Better to use a validation set here and stop when the validation loss bottoms out, but I had memory limitations.
+
+```{r}
+#| eval: false
+model_fit <-
+  tabnet_fit(
+    nn_rec,
+    data = train_data %>% select(-Symbol, -Date),
+    tabnet_model = model_fit,
+    from_epoch = 10,
+    epochs = 5,
+    checkpoint_epochs = 5,
+    batch_size = 2^13,
+    virtual_batch_size = 2^10,
+    decision_width = 23, 
+    attention_width = 28,
+    num_steps = 4, 
+    penalty = 4.89e-9, 
+    momentum = 0.359,
+    feature_reusage = 1.67, 
+    learn_rate = 0.00916,
+    device = "cuda",
+    verbose = TRUE
+  )
+```
+
+Save the final model! I highly recommend it because this model can be used for months without re-training.
+
+```{r}
+#| echo: false
+model_fit <- readRDS("tuned_model.Rdata")
+```
+
+Check variable importance. Pretty heavily dominated by a small number of predictors, which isn't great.
+
+```{r}
+vip::vip(model_fit, num_features = 20) + theme_bw()
+```
+
+For convenience, I make a dataframe `res` (short for results) with actual and predicted close prices and use it for checking performance.
+
+```{r}
+res <- tibble(
+  date = test_data$Date,
+  symbol = test_data$Symbol,
+  close = test_data$Close,
+  new_close = test_data$y,
+  pred = predict(model_fit, test_data) %>% .$`.pred`
+)
+```
+
+Calculate the RMSE for the final model. Shouldn't be too different from the RMSE for the training data,
+
+```{r}
+res %>% 
+  mutate(er = (pred - new_close)^2) %>% 
+  summarize(rmse = sqrt(mean(er)))
+```
+
+Even though this is a regression problem, we can also look at it as if it was a classification problem and get the confusion matrix. We want lots of true-positives, of course. I'm not that concerned if the model predicts a stock will go down and it actually goes up because with a downward prediction, I wouldn't have looked at it further or risked any money on it. What I don't want are many upward predictions that actually go down.
+
+```{r}
+res <- res %>% mutate(
+  pred_diff = pred - close,
+  act_diff = new_close - close,
+  correct = ifelse((pred_diff > 0 & act_diff > 0) | (pred_diff < 0 & act_diff < 0) , 1, 0),
+  target = ifelse(new_close > close, 1, 0),
+  predict = ifelse(pred > close, 1, 0)
+)
+
+conf_mat <- cvms::confusion_matrix(
+  targets = res %>% .$target,
+  predictions = res %>% .$predict)
+
+cvms::plot_confusion_matrix(conf_mat$`Confusion Matrix`[[1]]) + 
+  ggtitle("Tabnet Regression Accuracy")
+```
+
+## Results
+
+My results were true positives around 50% - right around the benchmark. But that got me thinking. What I'm showing is how good the model is at predicting the stock price in exactly three days. What if I buy a stock, and after three days it hasn't gone up? I'd probably hang on to it a little longer in case it goes up after 4 or 5 or \_\_ days. Plus, if I stick to S&P 500 stocks,I'm not too concerned about losing everything, so might as well hold on. Furthermore, if a stock did go up, I might also want to hang on longer to see if it keeps going up. Basically, I need a sell strategy. This might be a place for a new model, but for now I'll just hard code an approximate strategy.
+
+For each stock and each date, get the maximum close price over the next 10 days. Here, I'm not concerned about the amount a stock goes up or down, just that it did or did not increase in value at some point in the next 10 days. If I do this, I get a much higher true positive rate.
+
+```{r}
+res <- res %>%
+  group_by(symbol) %>%
+  mutate(
+    windowmax = zoo::rollmax(close, k=10, fill=NA, align = "left"),
+    target = ifelse(predict > target & windowmax > close, 1, target)) %>% 
+  drop_na()
+
+conf_mat <- cvms::confusion_matrix(
+  targets = res %>% .$target,
+  predictions = res %>% .$predict)
+
+cvms::plot_confusion_matrix(conf_mat$`Confusion Matrix`[[1]]) + 
+  ggtitle("Tabnet Regression Accuracy")
+```
+
+Here, I'm getting the average return using the above sell strategy.
+
+```{r}
+res %>%
+  group_by(symbol) %>%
+  mutate(
+    windowmax = rollmax(close, k=10, fill=NA, align = "left"),
+    pred_new = ifelse(predict > target & windowmax > close, windowmax, pred)) %>%
+  filter(predict == 1) %>%
+  mutate(gain = pred_new / close) %>%
+  ungroup() %>%
+  summarize(mean_gain = mean(gain, na.rm=T))
+```
+
+### Simulate Buys And Sells
+
+Given the above sell strategy and the regression model, I now conduct 30 simulations of buying and selling stocks in 2021. I'll assume I start with \$50,000 to invest, and I'll buy stocks \$5,000 at a time. I'll sell when a stock has gained at least 6%. Below is a summary of the distribution of the profits from all simulations. At least there **is** profit for 2022, which actually pretty good.
+
+```{r}
+library(furrr)
+future::plan("future::multisession")
+
+res <- res %>% ungroup()
+
+temp <- 1:30 %>% future_map(function(x){
+  bank <- 50000
+  buy_amt <- 5000
+  thresh <- 1.06
+  for (d in unique(res$date)){
+    d <- as.Date(d)
+    if (d == "2022-01-03"){
+      buy <- res %>% filter(date == d & pred > close)
+      id <- sample(1:nrow(buy), bank/buy_amt, replace = FALSE)
+      cur_stocks <- buy %>% slice(id) %>% select(-new_close, -pred)
+      bank <- 0
+    }
+    
+    today <- res %>% filter(date == d & symbol %in% (cur_stocks %>% .$symbol)) %>% 
+      select(-new_close, -pred) %>%
+      rename("new_close" = "close", "new_date" = "date")
+    
+    sell <- cur_stocks %>% 
+      left_join(today, by = "symbol") %>%
+      mutate(gain = new_close / close) %>%
+      filter(gain >= thresh)
+    
+    if (nrow(sell) > 0){
+      bank <- bank + sell %>% mutate(dollars = gain * buy_amt) %>% select(dollars) %>% sum()
+      if(exists("actions")){actions <- actions %>% bind_rows(sell)}else{actions <- sell}
+      cur_stocks <- cur_stocks %>% filter(!symbol %in% (sell %>% .$symbol))
+      
+      buy <- res %>% filter(date == d & pred > close)
+      id <- sample(1:nrow(buy), floor(bank / buy_amt), replace = FALSE)
+      bank <- bank - floor(bank / buy_amt) * buy_amt
+      cur_stocks <- cur_stocks %>% bind_rows(buy %>% slice(id) %>% select(-new_close, -pred))
+      
+    }
+    
+  }
+  
+  actions %>% 
+    mutate(dollars = gain * buy_amt) %>% 
+    select(dollars) %>% 
+    sum() - buy_amt * nrow(actions)
+  
+}, .options = furrr_options(seed = T)) %>% unlist()
+
+summary(temp)
+```
+### Some Plots
+
+Predicted versus actual close price. There's a noticeable error or predicting slightly higher than the actual close price.
+
+```{r}
+res %>%
+  ggplot() +
+  geom_abline(slope=1, color='red', linewidth=1) +
+  geom_point(aes(x=new_close, y=pred), alpha=0.2) +
+  xlab("Actual Close Price") +
+  ylab("Predicted Close Price") +
+  theme_bw()
+```
+
+These were nine of the top performing stocks in 2021, if I remember right. Just seeing how they look in 2022 and how closely the model predictions match actual close prices for various individual stocks.
+
+```{r}
+top9 <- c("DXCM", "AMD", "URI", "NFLX", "NVDA", "MU", "FCX", "ABMD", "FTNT")
+
+ggplot(res %>% filter(date >= "2022-01-01" & symbol %in% top9)) +
+  geom_line(aes(x=date, y=new_close, group=symbol), size=1) +
+  geom_line(aes(x=date-3, y=pred), color="red", size=2, alpha=0.5) +
+  coord_trans(y="log10") +
+  facet_wrap(~symbol) +
+  ylab("Close") +
+  ggtitle("2022 Closing Prices\nActual: Black, Predicted: Red") +
+  theme_bw()
+```

@@ -59,6 +59,7 @@ website:
     background: light
     left: "Copyright 2022, John King"
   page-navigation: true
+  site-url: https://jfking.netlify.app
 
 format:
   html:
