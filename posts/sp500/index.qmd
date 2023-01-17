@@ -18,7 +18,7 @@ categories:
   - predictive modeling
   - machine learning
   - stocks
-image: "mc.png"
+image: "teaser.jpg"
 ---
 
 In the Summer of 2022, a colleague shared some scripts he had written to identify stocks that had a high probability of increasing their value 20 days in the future. I don't want to give away his methodology, so I'll just say that the scripts fit two models for each individual stock, and there were more than 7,000 stocks. It was an interesting approach, and I worked on just getting the scripts to be more efficient. Eventually, I was able to get the whole process to run about 2.5x faster, which translated into several hours.
@@ -253,7 +253,7 @@ head(df_joined)
 
 Again, you might want to save this to disk so you don't have to keep repeating the above steps.
 
-One stock (NVR) trades at over $4,000/share. It's so much higher than all of the others, I decided to eliminate it from training and testing.
+One stock (NVR) trades at over \$4,000/share. It's so much higher than all of the others, I decided to eliminate it from training and testing.
 
 ```{r}
 df_joined %>% filter(Close > 4000) %>% distinct(Symbol)
@@ -293,7 +293,7 @@ nn_rec <- recipe(y ~ ., data = train_data %>% select(-Symbol, -Date)) %>%
   step_normalize(all_numeric_predictors())
 ```
 
-Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU's dedicated memory. Mine's old and wimpy, so with validation, I have to keep it to $2^13$. Without validation, I can go up to $2^15$. This took many hours on my machine to complete, and some models failed.
+Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU's dedicated memory. Mine's old and wimpy, so with validation, I have to keep it to $2^{13}$. Without validation, I can go up to $2^{15}$. This took many hours on my machine to complete, and some models failed.
 
 ```{r}
 #| eval: false
@@ -540,6 +540,7 @@ temp <- 1:30 %>% future_map(function(x){
 
 summary(temp)
 ```
+
 ### Some Plots
 
 Predicted versus actual close price. There's a noticeable error or predicting slightly higher than the actual close price.

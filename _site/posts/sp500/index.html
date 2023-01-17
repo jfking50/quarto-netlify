@@ -628,7 +628,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU’s dedicated memory. Mine’s old and wimpy, so with validation, I have to keep it to <span class="math inline">\(2^13\)</span>. Without validation, I can go up to <span class="math inline">\(2^15\)</span>. This took many hours on my machine to complete, and some models failed.</p>
+<p>Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU’s dedicated memory. Mine’s old and wimpy, so with validation, I have to keep it to <span class="math inline">\(2^{13}\)</span>. Without validation, I can go up to <span class="math inline">\(2^{15}\)</span>. This took many hours on my machine to complete, and some models failed.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -1292,7 +1292,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="co">  - predictive modeling</span></span>
 <span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co">  - machine learning</span></span>
 <span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="co">  - stocks</span></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> "mc.png"</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> "teaser.jpg"</span></span>
 <span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>In the Summer of 2022, a colleague shared some scripts he had written to identify stocks that had a high probability of increasing their value 20 days in the future. I don't want to give away his methodology, so I'll just say that the scripts fit two models for each individual stock, and there were more than 7,000 stocks. It was an interesting approach, and I worked on just getting the scripts to be more efficient. Eventually, I was able to get the whole process to run about 2.5x faster, which translated into several hours.</span>
@@ -1527,7 +1527,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb30-269"><a href="#cb30-269" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-270"><a href="#cb30-270" aria-hidden="true" tabindex="-1"></a>Again, you might want to save this to disk so you don't have to keep repeating the above steps.</span>
 <span id="cb30-271"><a href="#cb30-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-272"><a href="#cb30-272" aria-hidden="true" tabindex="-1"></a>One stock (NVR) trades at over $4,000/share. It's so much higher than all of the others, I decided to eliminate it from training and testing.</span>
+<span id="cb30-272"><a href="#cb30-272" aria-hidden="true" tabindex="-1"></a>One stock (NVR) trades at over \$4,000/share. It's so much higher than all of the others, I decided to eliminate it from training and testing.</span>
 <span id="cb30-273"><a href="#cb30-273" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-276"><a href="#cb30-276" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb30-277"><a href="#cb30-277" aria-hidden="true" tabindex="-1"></a>df_joined <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Close <span class="sc">&gt;</span> <span class="dv">4000</span>) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(Symbol)</span>
@@ -1567,7 +1567,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb30-319"><a href="#cb30-319" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric_predictors</span>())</span>
 <span id="cb30-320"><a href="#cb30-320" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb30-321"><a href="#cb30-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-322"><a href="#cb30-322" aria-hidden="true" tabindex="-1"></a>Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU's dedicated memory. Mine's old and wimpy, so with validation, I have to keep it to $2^13$. Without validation, I can go up to $2^15$. This took many hours on my machine to complete, and some models failed.</span>
+<span id="cb30-322"><a href="#cb30-322" aria-hidden="true" tabindex="-1"></a>Define the model and parameters for tuning. Use large values for batch size. Batch size should be 2 to the order of something. Virtual batch size should be 1/8 of the batch size. Use trial and error to see how large you can go based on your GPU's dedicated memory. Mine's old and wimpy, so with validation, I have to keep it to $2^{13}$. Without validation, I can go up to $2^{15}$. This took many hours on my machine to complete, and some models failed.</span>
 <span id="cb30-323"><a href="#cb30-323" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-326"><a href="#cb30-326" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb30-327"><a href="#cb30-327" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
@@ -1814,34 +1814,35 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb30-598"><a href="#cb30-598" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-599"><a href="#cb30-599" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(temp)</span>
 <span id="cb30-600"><a href="#cb30-600" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb30-601"><a href="#cb30-601" aria-hidden="true" tabindex="-1"></a><span class="fu">### Some Plots</span></span>
-<span id="cb30-602"><a href="#cb30-602" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-603"><a href="#cb30-603" aria-hidden="true" tabindex="-1"></a>Predicted versus actual close price. There's a noticeable error or predicting slightly higher than the actual close price.</span>
-<span id="cb30-604"><a href="#cb30-604" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-607"><a href="#cb30-607" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb30-608"><a href="#cb30-608" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span></span>
-<span id="cb30-609"><a href="#cb30-609" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb30-610"><a href="#cb30-610" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope=</span><span class="dv">1</span>, <span class="at">color=</span><span class="st">'red'</span>, <span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb30-611"><a href="#cb30-611" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x=</span>new_close, <span class="at">y=</span>pred), <span class="at">alpha=</span><span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb30-612"><a href="#cb30-612" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Actual Close Price"</span>) <span class="sc">+</span></span>
-<span id="cb30-613"><a href="#cb30-613" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Predicted Close Price"</span>) <span class="sc">+</span></span>
-<span id="cb30-614"><a href="#cb30-614" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
-<span id="cb30-615"><a href="#cb30-615" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb30-616"><a href="#cb30-616" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-617"><a href="#cb30-617" aria-hidden="true" tabindex="-1"></a>These were nine of the top performing stocks in 2021, if I remember right. Just seeing how they look in 2022 and how closely the model predictions match actual close prices for various individual stocks.</span>
-<span id="cb30-618"><a href="#cb30-618" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-621"><a href="#cb30-621" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb30-622"><a href="#cb30-622" aria-hidden="true" tabindex="-1"></a>top9 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DXCM"</span>, <span class="st">"AMD"</span>, <span class="st">"URI"</span>, <span class="st">"NFLX"</span>, <span class="st">"NVDA"</span>, <span class="st">"MU"</span>, <span class="st">"FCX"</span>, <span class="st">"ABMD"</span>, <span class="st">"FTNT"</span>)</span>
-<span id="cb30-623"><a href="#cb30-623" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-624"><a href="#cb30-624" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="st">"2022-01-01"</span> <span class="sc">&amp;</span> symbol <span class="sc">%in%</span> top9)) <span class="sc">+</span></span>
-<span id="cb30-625"><a href="#cb30-625" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x=</span>date, <span class="at">y=</span>new_close, <span class="at">group=</span>symbol), <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb30-626"><a href="#cb30-626" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x=</span>date<span class="dv">-3</span>, <span class="at">y=</span>pred), <span class="at">color=</span><span class="st">"red"</span>, <span class="at">size=</span><span class="dv">2</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb30-627"><a href="#cb30-627" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_trans</span>(<span class="at">y=</span><span class="st">"log10"</span>) <span class="sc">+</span></span>
-<span id="cb30-628"><a href="#cb30-628" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>symbol) <span class="sc">+</span></span>
-<span id="cb30-629"><a href="#cb30-629" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Close"</span>) <span class="sc">+</span></span>
-<span id="cb30-630"><a href="#cb30-630" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"2022 Closing Prices</span><span class="sc">\n</span><span class="st">Actual: Black, Predicted: Red"</span>) <span class="sc">+</span></span>
-<span id="cb30-631"><a href="#cb30-631" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
-<span id="cb30-632"><a href="#cb30-632" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-601"><a href="#cb30-601" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-602"><a href="#cb30-602" aria-hidden="true" tabindex="-1"></a><span class="fu">### Some Plots</span></span>
+<span id="cb30-603"><a href="#cb30-603" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-604"><a href="#cb30-604" aria-hidden="true" tabindex="-1"></a>Predicted versus actual close price. There's a noticeable error or predicting slightly higher than the actual close price.</span>
+<span id="cb30-605"><a href="#cb30-605" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-608"><a href="#cb30-608" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-609"><a href="#cb30-609" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span></span>
+<span id="cb30-610"><a href="#cb30-610" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb30-611"><a href="#cb30-611" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope=</span><span class="dv">1</span>, <span class="at">color=</span><span class="st">'red'</span>, <span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb30-612"><a href="#cb30-612" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x=</span>new_close, <span class="at">y=</span>pred), <span class="at">alpha=</span><span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb30-613"><a href="#cb30-613" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Actual Close Price"</span>) <span class="sc">+</span></span>
+<span id="cb30-614"><a href="#cb30-614" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Predicted Close Price"</span>) <span class="sc">+</span></span>
+<span id="cb30-615"><a href="#cb30-615" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb30-616"><a href="#cb30-616" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb30-617"><a href="#cb30-617" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-618"><a href="#cb30-618" aria-hidden="true" tabindex="-1"></a>These were nine of the top performing stocks in 2021, if I remember right. Just seeing how they look in 2022 and how closely the model predictions match actual close prices for various individual stocks.</span>
+<span id="cb30-619"><a href="#cb30-619" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-622"><a href="#cb30-622" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb30-623"><a href="#cb30-623" aria-hidden="true" tabindex="-1"></a>top9 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"DXCM"</span>, <span class="st">"AMD"</span>, <span class="st">"URI"</span>, <span class="st">"NFLX"</span>, <span class="st">"NVDA"</span>, <span class="st">"MU"</span>, <span class="st">"FCX"</span>, <span class="st">"ABMD"</span>, <span class="st">"FTNT"</span>)</span>
+<span id="cb30-624"><a href="#cb30-624" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-625"><a href="#cb30-625" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res <span class="sc">%&gt;%</span> <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="st">"2022-01-01"</span> <span class="sc">&amp;</span> symbol <span class="sc">%in%</span> top9)) <span class="sc">+</span></span>
+<span id="cb30-626"><a href="#cb30-626" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x=</span>date, <span class="at">y=</span>new_close, <span class="at">group=</span>symbol), <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb30-627"><a href="#cb30-627" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x=</span>date<span class="dv">-3</span>, <span class="at">y=</span>pred), <span class="at">color=</span><span class="st">"red"</span>, <span class="at">size=</span><span class="dv">2</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb30-628"><a href="#cb30-628" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_trans</span>(<span class="at">y=</span><span class="st">"log10"</span>) <span class="sc">+</span></span>
+<span id="cb30-629"><a href="#cb30-629" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>symbol) <span class="sc">+</span></span>
+<span id="cb30-630"><a href="#cb30-630" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Close"</span>) <span class="sc">+</span></span>
+<span id="cb30-631"><a href="#cb30-631" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"2022 Closing Prices</span><span class="sc">\n</span><span class="st">Actual: Black, Predicted: Red"</span>) <span class="sc">+</span></span>
+<span id="cb30-632"><a href="#cb30-632" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb30-633"><a href="#cb30-633" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
