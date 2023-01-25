@@ -167,7 +167,7 @@ anim <-
   theme(panel.background = element_rect(fill = 'black', color = 'black')) +
   transition_reveal(frame)
 
-animate(anim, end_pause=20, res=300)
+animate(anim, end_pause=20, res=300, nframes=nrow(df) + 20)
 ```
 
 ![](maze_gif.gif)
