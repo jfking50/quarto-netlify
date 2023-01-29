@@ -154,7 +154,7 @@ ggplot(df) +
 
 Before I continue, this is a good spot to recreate the .gif I saw. I'll use the `gganimate` package to display the maze as it's generated.
 
-```{r, eval=FALSE}
+```{r}
 library(gganimate)
 
 anim <- 
@@ -169,8 +169,6 @@ anim <-
 
 animate(anim, end_pause=20, res=300, nframes=nrow(df) + 20)
 ```
-
-![](maze_gif.gif)
 
 How about a bigger maze? Let's try 50x50.
 

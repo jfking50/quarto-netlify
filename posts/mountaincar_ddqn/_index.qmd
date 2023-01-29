@@ -140,7 +140,7 @@ fig.update_layout(xaxis_title='Episode', yaxis_title='Score')
 fig.show()
 ```
 
-Compared to the DQN, the best score is better, but it looks less stable. Eyeballing things, it looks like the average score over the last 200 epidodes is 125-130-ish, which is better than the 145-ish with DQN. There are a lot of sub-110 scores, thouch, so this has some promise for pursuing the goal of "solving" the environment (100 successive eposodes with 110 or fewer steps).
+Compared to the DQN, the best score is better, but it looks less stable. Eyeballing things, it looks like the average score over the last 200 episodes is 125-130-ish, which is better than the 145-ish with DQN. There are a lot of sub-110 scores, though, so this has some promise for pursuing the goal of "solving" the environment (100 successive episodes with 110 or fewer steps).
 
 ## Dueling Double DQN
 
@@ -244,7 +244,6 @@ model.set_weights(best_weights)
 
 env.close()
 ```
-
 
 ```{python}
 fig = px.line(x=[i for i in range(len(rewards))], y=rewards)

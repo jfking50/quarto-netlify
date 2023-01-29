@@ -369,20 +369,21 @@ ggplot() +
 One last idea. Let's animate the tree "growing"!
 
 ```{r}
-#| include: false
+#| eval: false
 library(gganimate)
 
-df %>% 
+anim <- 
   ggplot() +
-  geom_path(data=df, 
-            aes(x=x, y=y, group=s, size=1/s), 
+  geom_path(data = df, aes(x=x, y=y, group=s, size=1/s), 
             color="black", lineend="round") +
   coord_fixed() +
   theme_void() +
   theme(legend.position="none") +
-  transition_reveal(s)
+  transition_reveal(frame)
+
+animate(anim, res=300, fps=50, nframes=nrow(df))
 ```
 
-![](tree.gif){fig-align="center"}
+![](tree.gif)
 
 You can [click here](https://cxxidemo.shinyapps.io/genart/) for my Shiny app to generate your own art using this and other algorithms. Enjoy!

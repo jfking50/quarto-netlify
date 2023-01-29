@@ -195,16 +195,20 @@ df <- df %>%
   group_by(gp) %>%
   mutate(frame = row_number())
 
-df %>% 
+anim <-
+  df %>% 
   ggplot() +
-  geom_line(aes(x=x, y=y, group=gp, color=factor(gp)), linewidth = 0.2, alpha=0.5) +
+  geom_line(aes(x=x, y=y, group=gp, color=factor(gp)), 
+            linewidth=0.2, alpha=0.5) +
   scale_fill_distiller(palette = "Spectral") +
   theme_void() +
   theme(panel.background = element_rect(fill = 'black', color = 'black'),
         legend.position = "none") + 
   transition_reveal(frame)
-  
-animate(anim, res=300, fps=25, nframes=max(df$frames))
+```
+
+```{r}
+animate(anim, res=300, fps=25, nframes=max(df$frame))
 ```
 
 It seemed to me that there are a number of knobs one could turn to get different effects, like the seed, the number of sequences, the amount of bend in the lines, and the choice of color palettes. So, I made a [Shiny App](https://cxxidemo.shinyapps.io/genart/) for this and other generative art algorithms.
