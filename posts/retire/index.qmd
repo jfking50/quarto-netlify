@@ -1,0 +1,104 @@
+---
+title: "Investment Balance Simulator"
+description: "A stochastic simulation to determine a distribution of potential  future investment balances"
+author: "John King"
+date: "3/19/2023"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-tools: true
+    code-copy: true
+    df-print: paged
+execute: 
+  warning: false
+  message: false
+  echo: true
+categories:
+  - R
+image: "teaser.png"
+---
+
+Retirement is getting within reach `r fontawesome::fa("fas fa-thumbs-up")`, so I wanted to take a different look at how my investments might perform in the future. I will easily be able to live off my pension, and it will be adjusted for inflation, so I don't expect to have to withdraw anything from my retirement or non-retirement investments. I therefore recently re-invested those accounts into S&P 500 index funds because I definitely don't expect to need those funds in the next 10 years - possibly ever `r fontawesome::fa("hands-praying")` .
+
+To ballpark my future balance, I've been simply assuming a value to use as the average annual return and adjusting it by an average annual inflation. Instead, now I'd like to run a simulation where I randomly sample from past S&P returns and past inflation values to get a distribution of future investment values.
+
+## Get the Data
+
+First I need historic S&P 500 returns, which I found at [Investopedia](https://www.investopedia.com/ask/answers/042415/what-average-annual-return-sp-500.asp) and which gets their data from NYU Stern. Their return values include dividends, and that's is fine for this case. The `Returns` column is in percent, so I'll convert that to a decimal. The first and last years of the data are 1957 and 2022.
+
+```{r}
+library(tidyverse)
+theme_set(theme_bw())
+
+sp <- read.csv("~/GitHub/quarto-netlify/data/sp_history_2022.csv") |>
+  mutate(Returns = Returns/100)
+
+sp |> slice(1, nrow(sp))
+```
+
+I then downloaded historic inflation data from the [U.S. Bureau of Labor and Statistics](https://data.bls.gov/pdq/SurveyOutputServlet). Their data goes back to 1958, which is a year later than the S&P data, but that's fine. I'm just sampling from the distributions, so the two data sets don't have to be the exact same years. The annual inflation data for 2023 isn't available yet, of course, so I'll drop it, and I'll convert the percent to a decimal in the `Annual` column. Here are the first and least years of the inflation data.
+
+```{r}
+inf <- readxl::read_xlsx("~/GitHub/quarto-netlify/data/inflation.xlsx", 
+                         skip = 11) |> 
+  select(Year, Annual) |>
+  drop_na() |>
+  mutate(Annual = Annual/100)
+
+inf |> slice(1, nrow(inf))
+```
+
+How are those rates distributed, anyway?
+
+```{r}
+p1 <- sp |>
+  ggplot() + 
+  geom_histogram(aes(x=Returns), bins = 10) +
+  ggtitle("S&P 500") +
+  xlab("Return")
+
+p2 <- inf |>
+  ggplot() + 
+  geom_histogram(aes(x=Annual), bins = 10) +
+  ggtitle("Inflation") +
+  xlab("Annual Rate")
+
+cowplot::plot_grid(p1, p2, nrow=1)
+```
+
+## Simulation
+
+I'm going to 1000 different potential outcomes based on random sampling of the S&P 500 and inflation data. For simulation inputs, I'm going to use the current total investment value, the amount of expected pension, and how many years in the future to simulate out to. Below I plot the investment value by year for each simulation with a generalized additive model smoother in blue.
+
+```{r}
+df <- 1:1000 |>
+  map_dfr(function(x){
+    invest <- 800000
+    balance <- invest
+    for (i in 1:20){
+      infl <- 1 - sample(inf$Annual, 1)
+      if (i < 4){
+        invest <- (invest + invest * sample(sp$Returns, 1)) * infl + 4500 * 12
+      }else{
+        invest <- (invest + invest * sample(sp$Returns, 1)) * infl
+      }
+      
+      balance <- c(balance, invest)
+    }
+    tibble(balance = balance, year = 2023:2043, sim = x)
+  })
+
+ave <- mean(df |> filter(year==(max(year))) %>% .$balance)
+
+plotly::ggplotly(df |>
+  ggplot() +
+  geom_line(aes(x=year, y=balance, group=sim), 
+            linewidth=0.1, color='black', alpha = 0.1) +
+  geom_smooth(aes(x=year, y=balance), 
+              se=FALSE, method = "gam") +
+    xlab("Year") + ylab("Balance"))
+  
+```
+
+Ideally, I'd like to play around with different input values and have the plot be interactive, but I can't do that on a static website `r fontawesome::fa("fas fa-face-frown")`, so I'll have to make an app instead.

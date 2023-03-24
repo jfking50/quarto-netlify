@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/retire/index.html",
       "/posts/sp500/index.html",
       "/posts/tripeaks/index.html",
       "/posts/maze/index.html",
@@ -17,7 +18,6 @@
       "/posts/oregon_football/index.html",
       "/posts/res5/index.html",
       "/posts/ames/index.html",
-      "/posts/mountaincar_ddqn/index.html",
       "/posts/mountaincar_dqn/index.html",
       "/posts/dqn_ttt/index.html",
       "/posts/qlearn/index.html",

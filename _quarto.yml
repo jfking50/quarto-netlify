@@ -57,7 +57,7 @@ website:
           text: Design of Experiments
   page-footer:
     background: light
-    left: "Copyright 2022, John King"
+    left: "Copyright 2023, John King"
   page-navigation: true
   site-url: https://jfking.netlify.app
 
