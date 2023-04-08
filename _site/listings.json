@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/wordament/index.html",
       "/posts/retire/index.html",
       "/posts/sp500/index.html",
       "/posts/tripeaks/index.html",
