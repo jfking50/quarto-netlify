@@ -240,4 +240,4 @@ ggplot() +
   theme_void()
 ```
 
-Now that I have the basic functionality worked out, I can leverage all this in a Shiny app so that a user can input whatever board letters they need help with.
+Now that I have the basic functionality worked out, I put all of this in [a Shiny app](https://cxxidemo.shinyapps.io/wordament/) so that a user can input whatever board letters they need help with (only up to 10-letter words at this point).
